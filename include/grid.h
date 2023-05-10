@@ -3,8 +3,12 @@
 
 class Grid {
 	private:
-		int x_size;
-		int y_size;
+		int size_x;
+		int size_y;
+
+		int start_set = 1;
+		int end_set = 1;
+
 		// Think of replacing with your own definition of matrix
 		int matrix[20][20];
 
@@ -12,8 +16,16 @@ class Grid {
 		Grid();
 		Grid(int x_size, int y_size);
 		~Grid();
-		int get(int x, int y);
+
+		void on_mouse_event();
+		void on_refresh_event();
+
+		int get_rows();
+		int get_cols();
+
+		int get_index(int x, int y);
 		void modify(int x, int y);
+
 };
 
 #endif

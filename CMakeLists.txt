@@ -20,6 +20,9 @@ project(Path_finder)
 
 include_directories(include)
 
+# GDB flag
+set(CMAKE_BUILD_TYPE Debug)
+
 add_executable(Path_finder 
 	src/main.cpp 
 	src/grid.cpp
