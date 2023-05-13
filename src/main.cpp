@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <memory>
 #include <list>
+#include <thread>
+#include <unistd.h>
 
 // Ftxui includes
 #include "ftxui/screen/color.hpp"
@@ -134,7 +136,6 @@ int main(int argc, const char* argv[]) {
 		int rows_mod = rows_temp%15;
 
 		if(rows_mod > 7) rows_div++;
-		if(rows_div > 19) return 19;
 		return rows_div;	
 	});
 
@@ -146,6 +147,9 @@ int main(int argc, const char* argv[]) {
 			auto &mouse = e.mouse();
 			auto col_pixel = x_calc(mouse.x);//watch for any subtracting
 			auto row_pixel = y_calc(mouse.y);//watch for any subtracting
+
+			// Exit if mouse in the left window
+			if(col_pixel>19) return false;
 
 			// change the position of the mouse and display
 			char str[20];
@@ -163,15 +167,37 @@ int main(int argc, const char* argv[]) {
 
 	int value = 0;
 
+	//auto start = ( [&grid]() {
 
-	auto start_button = Button("Start", [&] { value++; });
+	//for(int i = 0; i < 10; i++){
+	//	for(int j = 0; j < 10; j++){
+	//		if(grid.get_index(i, j) == 1 || grid.get_index(i, j) == 2) 
+	//			continue;
+	//		grid.set_value(i, j, 3);
+	//		usleep(100000);
+	//	}
+	//}
+	//});
+
+	//std::thread thread(start);
+	// Add to fetch data from a class
+	std::vector<std::string> algorithms = {
+    "entry 1",
+    "entry 2",
+    "entry 3",
+	};
+	int selected = 0;
+
+	auto menu = Container::Vertical({ Radiobox(&algorithms, &selected) });
+	
+	auto start_button = Button("Start", [&] { grid.solve(selected); });
 	auto reset_button = Button("Reset", [&] { grid.reset(); });
 	auto clear_button = Button("Clear", [&] { grid.clear(); });
 
 	auto buttons = Container::Horizontal({start_button, reset_button, clear_button});
 
 	//
-	auto components = CatchEvent(Container::Horizontal({grid_with_mouse, buttons}), [&](const Event &e){
+	auto components = CatchEvent(Container::Horizontal({grid_with_mouse, buttons, menu}), [&](const Event &e){
 		grid.on_refresh_event();
 		return false;
 	});
@@ -183,6 +209,7 @@ int main(int argc, const char* argv[]) {
 				hbox({ text("Welcome to Path Finder") })|center,
 				text_temp|border,
 				separator(),
+				menu->Render()|border,
 				filler(),
 				hbox({ buttons->Render() }) | center
 			})|border)

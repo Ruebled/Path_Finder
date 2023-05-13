@@ -37,8 +37,9 @@ class Grid {
 
 		void clear();
 		void reset();
+		void solve(int);
 
-		//void set_value(int x, int y, int value);
+		void set_value(int x, int y, int value);
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include "grid.h"
+#include <unistd.h>
 
 Grid::Grid(){
 }
@@ -21,8 +22,8 @@ Grid::Grid(int y_size, int x_size){
 	end_set = 1;
 }
 
-int Grid::get_index(int x, int y){
-	return this->matrix[x][y];
+int Grid::get_index(int row, int col){
+	return this->matrix[row][col];
 }
 
 void Grid::modify(int x, int y){
@@ -151,7 +152,6 @@ void Grid::clear(){
 }
 
 void Grid::reset(){
-
 	for(int i = 0; i < this->size_y; i++){
 		for(int j = 0; j < this->size_x; j++){
 			matrix[i][j] = 0;
@@ -160,6 +160,22 @@ void Grid::reset(){
 
 	matrix[7][6] = 1;
 	matrix[7][14] = 2;
+}
+
+void Grid::solve(int val){
+	for(int i = 0; i < this->size_y; i++){
+		for(int j = 0; j < this->size_x-(val*2); j++){
+			if(matrix[i][j] == 1 || matrix[i][j] == 2) 
+				continue;
+			matrix[i][j] = 3;
+		}
+	}
+	return;
+}
+
+void Grid::set_value(int x, int y, int value){
+	this->matrix[y][x] = value;
+	return;
 }
 
 
