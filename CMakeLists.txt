@@ -25,7 +25,8 @@ set(CMAKE_BUILD_TYPE Debug)
 
 add_executable(Path_finder 
 	src/main.cpp 
-	src/grid.cpp
+	src/Grid.cpp
+	src/Matrix.cpp
 )
 
 target_link_libraries(Path_finder

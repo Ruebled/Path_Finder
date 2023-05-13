@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <memory>
 #include <list>
-#include <thread>
+#include <thread> //Implement multithreading version
 #include <unistd.h>
 
 // Ftxui includes
@@ -23,16 +23,25 @@
 #include "ftxui/component/screen_interactive.hpp"
 
 // Application local includes
-#include "grid.h"
+#include "Grid.h"
 
 //// Defines constant
-///Block(cell) sizes
+///Block(cell) sizes in "braille dots"
 #define dim_x 15
 #define dim_y 12
 
+// Cell color enum
+ftxui::Color Color_cell[] = { ftxui::Color::Black,
+							  ftxui::Color::Red,
+							  ftxui::Color::Green,
+							  ftxui::Color::Blue,
+							  ftxui::Color::GrayDark,
+							  ftxui::Color::YellowLight
+							};
+
 ftxui::Canvas matrix_to_canvas(Grid grid){
-	int rows = grid.get_rows();
-	int cols = grid.get_cols();
+	int rows = grid.height();
+	int cols = grid.width();
 
 	auto canvas = ftxui::Canvas(cols*dim_x+2, rows*(dim_y+1));
 
@@ -66,26 +75,7 @@ ftxui::Canvas matrix_to_canvas(Grid grid){
 		for ( int c = 0; c < cols; c++){
 			int color_ind = grid.get_index(r, c);
 
-			ftxui::Color cell_color;
-
-			switch(color_ind){
-				case 1:
-					cell_color = ftxui::Color::Red;
-					break;
-				case 2:
-					cell_color = ftxui::Color::Green;
-					break;
-				case 3:
-					cell_color = ftxui::Color::Blue;
-					break;
-				default:
-					cell_color = ftxui::Color::GrayDark;
-					break;
-			}
-
-			//if(color_ind != 1 && color_ind != 2 && color_ind != 3){
-			//	continue;
-			//}
+			ftxui::Color cell_color = Color_cell[color_ind];
 
 			if(color_ind == 0){
 				continue;
@@ -114,10 +104,8 @@ int main(int argc, const char* argv[]) {
 	//Create the screen and calculate grid size
 	auto screen = ScreenInteractive::Fullscreen();
 
-	int cell_x = 20; // cell on x axis of the grid
-	int cell_y = 14; // cell on y axis of the grid
-
-	Grid grid = Grid(cell_y, cell_x);
+	// Define grid with default sizes
+	Grid grid;
 
 	auto grid_renderer = Renderer( [&] { 
 		return canvas(matrix_to_canvas(grid));
@@ -132,15 +120,14 @@ int main(int argc, const char* argv[]) {
 
 	auto x_calc = ( [&] (int rows) {
 		int rows_temp = rows - 1;
-		int rows_div = (rows_temp/15)*2;
-		int rows_mod = rows_temp%15;
+		int rows_div = (rows_temp / 15) * 2;
+		int rows_mod = rows_temp % 15;
 
 		if(rows_mod > 7) rows_div++;
 		return rows_div;	
 	});
 
-	auto text_temp = ftxui::text("fas");
-
+	auto text_temp = ftxui::text("");
 
 	auto grid_with_mouse = CatchEvent(grid_renderer, [&](Event e) {
 		if (e.is_mouse()) {
@@ -150,6 +137,7 @@ int main(int argc, const char* argv[]) {
 
 			// Exit if mouse in the left window
 			if(col_pixel>19) return false;
+			if(row_pixel>13) return false;
 
 			// change the position of the mouse and display
 			char str[20];
@@ -167,20 +155,6 @@ int main(int argc, const char* argv[]) {
 
 	int value = 0;
 
-	//auto start = ( [&grid]() {
-
-	//for(int i = 0; i < 10; i++){
-	//	for(int j = 0; j < 10; j++){
-	//		if(grid.get_index(i, j) == 1 || grid.get_index(i, j) == 2) 
-	//			continue;
-	//		grid.set_value(i, j, 3);
-	//		usleep(100000);
-	//	}
-	//}
-	//});
-
-	//std::thread thread(start);
-	// Add to fetch data from a class
 	std::vector<std::string> algorithms = {
     "entry 1",
     "entry 2",
@@ -207,7 +181,7 @@ int main(int argc, const char* argv[]) {
 			grid_with_mouse->Render() | border,
 			flex_grow(vbox({
 				hbox({ text("Welcome to Path Finder") })|center,
-				text_temp|border,
+				hbox({ text("Coord: [Y] [X]: "), text_temp | center })|border,
 				separator(),
 				menu->Render()|border,
 				filler(),
