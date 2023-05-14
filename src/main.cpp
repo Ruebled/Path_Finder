@@ -1,12 +1,12 @@
 // System includes
-#include <functional>
 #include <iostream>
 #include <vector>
 #include <stdio.h>
 #include <memory>
 #include <list>
 #include <thread> //Implement multithreading version
-#include <unistd.h>
+#include <chrono>
+
 
 // Ftxui includes
 #include "ftxui/screen/color.hpp"
@@ -24,6 +24,7 @@
 
 // Application local includes
 #include "Grid.h"
+#include "Tracer.h"
 
 //// Defines constant
 ///Block(cell) sizes in "braille dots"
@@ -155,15 +156,17 @@ int main(int argc, const char* argv[]) {
 
 	int value = 0;
 
-	std::vector<std::string> algorithms = {
-    "entry 1",
-    "entry 2",
-    "entry 3",
-	};
 	int selected = 0;
 
-	auto menu = Container::Vertical({ Radiobox(&algorithms, &selected) });
-	
+	// The list for algorithms
+	std::vector<std::string> algorithms_name = {
+		"A*",
+		"Djikstra",
+		"Placeholder"
+	};
+
+	auto menu = Container::Vertical({ Radiobox(&algorithms_name, &selected) });
+
 	auto start_button = Button("Start", [&] { grid.solve(selected); });
 	auto reset_button = Button("Reset", [&] { grid.reset(); });
 	auto clear_button = Button("Clear", [&] { grid.clear(); });
@@ -171,17 +174,17 @@ int main(int argc, const char* argv[]) {
 	auto buttons = Container::Horizontal({start_button, reset_button, clear_button});
 
 	//
-	auto components = CatchEvent(Container::Horizontal({grid_with_mouse, buttons, menu}), [&](const Event &e){
-		grid.on_refresh_event();
-		return false;
-	});
+	auto components = Container::Horizontal({grid_with_mouse, buttons, menu});
 
 	auto console_renderer = Renderer(components, [&] {
 		return hbox({ 
 			grid_with_mouse->Render() | border,
 			flex_grow(vbox({
 				hbox({ text("Welcome to Path Finder") })|center,
-				hbox({ text("Coord: [Y] [X]: "), text_temp | center })|border,
+				hbox({
+						text("Coord: [Y] [X]: "), 
+						text_temp
+					 })|center,
 				separator(),
 				menu->Render()|border,
 				filler(),
@@ -189,9 +192,19 @@ int main(int argc, const char* argv[]) {
 			})|border)
 		});
 	});
-	
+
+	// Threading the refresh ui program
+	std::atomic<bool> refresh_ui_continue = true;
+	std::thread refresh_ui([&] {
+		while (refresh_ui_continue) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			screen.PostEvent(Event::Custom);
+		}
+	});
 
 	screen.Loop(console_renderer);
+	refresh_ui_continue = false;
+	refresh_ui.join();
  
 	return 0;
 }

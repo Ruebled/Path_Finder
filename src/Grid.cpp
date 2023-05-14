@@ -1,26 +1,29 @@
-#include <unistd.h>
+#include <thread>
 
 #include "Grid.h"
 #include "Matrix.h"
+#include "Algo.h"
 
 Grid::Grid(){ 
-	Grid::reset();
-} // Grid constructor
+	matrix = Matrix();
 
-Grid::Grid(unsigned int rows, unsigned int cols):cell_x(cols),
-												 cell_y(rows),
-												 matrix(Matrix(rows, cols)){
+	matrix.set_start(this->start_y, this->start_x);
+
+	Grid::reset();
+} 
+
+Grid::Grid(unsigned int rows, unsigned int cols):matrix(Matrix(rows, cols)){
 	Grid::reset();
 }
 
 Grid::~Grid(){ } // Grid Destructor, just to be
 
 int Grid::width(){
-	return cell_x;
+	return matrix.width();
 }
 
 int Grid::height(){
-	return cell_y;
+	return matrix.height();
 }
 
 int Grid::get_index(unsigned int y, unsigned int x){
@@ -34,22 +37,22 @@ void Grid::set_value(unsigned int y, unsigned int x, unsigned int value){
 
 void Grid::clear(){
 	// Clear cells to Type.empty
-	for(int i = 0; i < cell_y; i++){
-		for(int j = 0; j < cell_x; j++){
+	for(int row = 0; row < matrix.height(); row++){
+		for(int col = 0; col < matrix.width(); col++){
 			// Leave start and end point at their positions
-			if(matrix[i][j] == Type(start) || matrix[i][j] == Type(end)){
+			if(matrix[row][col] == Type(start) || matrix[row][col] == Type(end)){
 				continue;
 			}
-			matrix[i][j] = Type(empty);
+			matrix[row][col] = Type(empty);
 		}
 	}
 }
 
 void Grid::reset(){
 	// Clear/Set cells to Type.empty
-	for(int i = 0; i < cell_y; i++){
-		for(int j = 0; j < cell_x; j++){
-			matrix[i][j] = Type(empty);
+	for(int row = 0; row < matrix.height(); row++){
+		for(int col = 0; col < matrix.width(); col++){
+			matrix[row][col] = Type(empty);
 		}
 	}
 
@@ -60,7 +63,21 @@ void Grid::reset(){
 	matrix[end_y][end_x] = Type(end);
 }
 
-void Grid::solve(int val){
+void Grid::solve(unsigned int choice){
+	auto func = &A_star;
+
+	switch(choice){
+		case 0:
+			func = &A_star;
+			break;
+		default:
+			break;
+	}
+
+	// Start the thread
+	std::thread th(func, std::ref(matrix));
+	// Detach the thread
+	th.detach();
 
 	return;
 }
