@@ -2,7 +2,28 @@
 #define MATRIX_H
 
 #include <vector>
+
 #include "Matrix_row.h"
+
+struct point{
+	unsigned int y;
+	unsigned int x;
+
+	friend bool operator<(const point& l, const point& r)
+    {
+        return std::tie(l.y, l.x) < std::tie(r.y, r.x);
+    }
+
+    friend bool operator==(const point& l, const point& r)
+    {
+        return std::tie(l.y, l.x) == std::tie(r.y, r.x);
+    }
+
+    friend bool operator!=(const point& l, const point& r)
+    {
+        return std::tie(l.y, l.x) != std::tie(r.y, r.x);
+    }
+};
 
 class Matrix {
 	private:
@@ -27,6 +48,8 @@ class Matrix {
 
 		unsigned int width();
 		unsigned int height();
+
+		point get_start_point();
 };
 
 #endif

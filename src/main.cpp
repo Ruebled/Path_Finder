@@ -24,7 +24,6 @@
 
 // Application local includes
 #include "Grid.h"
-#include "Tracer.h"
 
 //// Defines constant
 ///Block(cell) sizes in "braille dots"
@@ -160,8 +159,9 @@ int main(int argc, const char* argv[]) {
 
 	// The list for algorithms
 	std::vector<std::string> algorithms_name = {
-		"A*",
+		"BFS",
 		"Djikstra",
+		"A*",
 		"Placeholder"
 	};
 

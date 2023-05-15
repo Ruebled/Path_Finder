@@ -4,7 +4,7 @@
 #include "Matrix.h"
 
 // Cell types enum
-enum Type {empty, start, end, wall, checked, path};
+enum Type {empty, start, end, wall, visited, path};
 
 class Grid {
 	private:

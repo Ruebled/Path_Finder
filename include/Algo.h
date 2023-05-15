@@ -3,6 +3,6 @@
 
 #include "Matrix.h"
 
-void A_star(Matrix& matrix);
+void BFS(Matrix& matrix);
 
 #endif

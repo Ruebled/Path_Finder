@@ -16,10 +16,17 @@ Matrix_row Matrix::operator[](unsigned int x) {
 }
 
 void Matrix::set_start(unsigned int _syPos, unsigned int _sxPos){
-	this->sxPos = _sxPos;
 	this->syPos = _syPos;	
+	this->sxPos = _sxPos;
 
 	return;
+}
+
+point Matrix::get_start_point(){
+	point temp;
+	temp.y = this->syPos;
+	temp.x = this->sxPos;
+	return temp;
 }
 
 unsigned int Matrix::width(){

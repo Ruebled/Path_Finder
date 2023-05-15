@@ -58,21 +58,32 @@ void Grid::reset(){
 
 	// Set start point using
 	matrix[start_y][start_x] = Type(start);
+	//
+	matrix.set_start(start_y, start_x);
 
 	// Set end point
 	matrix[end_y][end_x] = Type(end);
 }
 
 void Grid::solve(unsigned int choice){
-	auto func = &A_star;
-
-	switch(choice){
-		case 0:
-			func = &A_star;
-			break;
-		default:
-			break;
+	for(int row = 0; row < matrix.height(); row++){
+		for(int col = 0; col < matrix.width(); col++){
+			if(matrix[row][col] == Type(visited) ||
+					matrix[row][col] == Type(path)){
+				matrix[row][col] = Type(empty);
+			}
+		}
 	}
+	
+	auto func = &BFS;
+
+	//switch(choice){
+	//	case 0:
+	//		func = &BFS;
+	//		break;
+	//	default:
+	//		break;
+	//}
 
 	// Start the thread
 	std::thread th(func, std::ref(matrix));
@@ -97,9 +108,9 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 		if(point_set){
 			if(!end_set){
 				if(address_ind == Type(start)){
-					matrix[temp_y][temp_x] = 2;
+					matrix[temp_y][temp_x] = Type(end);
 				}else{
-					matrix[last_y][last_x] = 2;
+					matrix[last_y][last_x] = Type(end);
 				}
 				point_set = 0;
 				end_set = 1;
@@ -107,9 +118,10 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 			}
 			if(!start_set){
 				if(address_ind == Type(end)){
-					this->matrix[temp_y][temp_x] = 1;
+					this->matrix[temp_y][temp_x] = Type(start);
 				}else{
-					this->matrix[last_y][last_x] = 1;
+					this->matrix[last_y][last_x] = Type(start);
+					matrix.set_start(last_y, last_x);
 				}
 				point_set = 0;
 				start_set = 1;
