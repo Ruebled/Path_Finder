@@ -51,8 +51,6 @@ class Grid {
 		void solve(unsigned int);
 
 		void on_mouse_event(int, int, bool, int);
-		void on_refresh_event();
-
 };
 
 #endif

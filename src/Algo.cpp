@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include <queue>
+#include <algorithm>
 
 #include "Matrix.h"
 #include "Grid.h"
@@ -10,6 +11,7 @@ std::vector<point> get_neighbors(Matrix& mat, point t_point);
 bool in_dict(point point, std::map<struct point, struct point>& t_map);
 
 void BFS(Matrix& matrix){
+
 	// The code
 	point start_point = matrix.get_start_point();
 
@@ -33,7 +35,7 @@ void BFS(Matrix& matrix){
 				if(matrix[current.y][current.x] != Type(start)){
 					matrix[current.y][current.x] = Type(path);
 				}
-				usleep(20*1000);
+				usleep(15*1000);
 			}
 			break;
 		}
@@ -50,7 +52,7 @@ void BFS(Matrix& matrix){
 				}
 			}
 		}
-		usleep(25*1000);
+		usleep(20*1000);
 	}
 
 	return;
@@ -99,6 +101,7 @@ std::vector<point> get_neighbors(Matrix& mat, point t_point){
 		}
 	}
 
+	std::random_shuffle(neigh.begin(), neigh.end());
 	return neigh;
 }
 

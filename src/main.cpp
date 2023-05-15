@@ -48,9 +48,6 @@ ftxui::Canvas matrix_to_canvas(Grid grid){
 	// Draw the Main axis from point 0, 0
 	canvas.DrawPointLine(0, 0, cols*dim_x, 0, ftxui::Color::White);
    	canvas.DrawPointLine(0, 0, 0, rows*dim_y, ftxui::Color::White);
-	//
-
-
 
 	// Drawing the grid of lines
 	for ( int r = 0; r <= rows; r++){
@@ -141,7 +138,7 @@ int main(int argc, const char* argv[]) {
 
 			// change the position of the mouse and display
 			char str[20];
-			sprintf(str, "%d %d %d", row_pixel, col_pixel, mouse.motion);
+			sprintf(str, "%d %d", row_pixel, col_pixel);
 			text_temp = ftxui::text(str);	
 
 			grid.on_mouse_event(row_pixel, 
@@ -159,36 +156,59 @@ int main(int argc, const char* argv[]) {
 
 	// The list for algorithms
 	std::vector<std::string> algorithms_name = {
-		"BFS",
+		"Breadth First Search",
 		"Djikstra",
 		"A*",
 		"Placeholder"
 	};
 
+
 	auto menu = Container::Vertical({ Radiobox(&algorithms_name, &selected) });
 
-	auto start_button = Button("Start", [&] { grid.solve(selected); });
-	auto reset_button = Button("Reset", [&] { grid.reset(); });
-	auto clear_button = Button("Clear", [&] { grid.clear(); });
+	auto start_button = Button("  Start  ", [&] { grid.solve(selected); })|bold;
+	auto reset_button = Button("  Reset  ", [&] { grid.reset(); })|bold;
+	auto clear_button = Button("  Clear  ", [&] { grid.clear(); })|bold;
 
-	auto buttons = Container::Horizontal({start_button, reset_button, clear_button});
+	auto buttons = Container::Horizontal({
+			start_button,
+		   	reset_button,
+		   	clear_button
+			});
 
-	//
 	auto components = Container::Horizontal({grid_with_mouse, buttons, menu});
 
 	auto console_renderer = Renderer(components, [&] {
 		return hbox({ 
 			grid_with_mouse->Render() | border,
 			flex_grow(vbox({
-				hbox({ text("Welcome to Path Finder") })|center,
+				hbox({ text("Welcome to Path Finder") })|center|bold,
 				hbox({
 						text("Coord: [Y] [X]: "), 
 						text_temp
 					 })|center,
 				separator(),
-				menu->Render()|border,
+				vbox({
+						text("Quick Introduction")|center,
+						vbox({
+							paragraph("This Project is visual implementation of some of the most known path finding algorithms."),
+							paragraph("Starting(red) and ending(green) point can be seen when opening the app."),
+							paragraph("Those can be drag and droped to change their position."),
+							paragraph("    Clicking and drawing on the empty cell will draw a wall(blue), that is working as a barrier for the path to be found."),
+							paragraph("    The algorithm used for path finding can be chosen from bellow by selecting the apropriate radiobutton."),
+							paragraph("    After pressing START, the path will be shown in YELLOW. And 'checked' cell in DARK-GRAY.")
+						})|borderEmpty|center
+						}),
+				separator(),
+				text("PathFinding Algorithms")|center|bold,
+				separatorEmpty(),
+				hbox({
+					separatorEmpty(),
+					separatorEmpty(),
+					menu->Render()
+				}),
 				filler(),
-				hbox({ buttons->Render() }) | center
+				separator(),
+				hbox({ buttons->Render()}) | center
 			})|border)
 		});
 	});

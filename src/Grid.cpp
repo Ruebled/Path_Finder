@@ -145,10 +145,12 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 
 
 	if(mouse_pressed){
-
 		if(!point_set){
 
-			if(address_ind == Type(wall)){
+			if(address_ind == Type(wall) ||
+			   address_ind == Type(visited) ||
+			   address_ind == Type(path)
+			   ){
 				border_set = 1;
 				address_ind = Type(empty);	
 				return;
@@ -191,8 +193,3 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 
 	return;
 }
-
-void Grid::on_refresh_event(){
-	return;
-}
-
