@@ -25,10 +25,9 @@
 // Application local includes
 #include "Grid.h"
 
-//// Defines constant
-///Block(cell) sizes in "braille dots"
-#define dim_x 15
-#define dim_y 12
+////Block(cell) sizes in "braille dots"
+//#define dim_x 10
+//#define dim_y 10
 
 // Cell color enum
 ftxui::Color Color_cell[] = { ftxui::Color::Black,
@@ -39,18 +38,27 @@ ftxui::Color Color_cell[] = { ftxui::Color::Black,
 							  ftxui::Color::YellowLight
 							};
 
-ftxui::Canvas matrix_to_canvas(Grid grid){
+ftxui::Canvas matrix_to_canvas(Grid grid, int dim_y, int dim_x, ftxui::Screen& screen){
 	int rows = grid.height();
 	int cols = grid.width();
 
 	auto canvas = ftxui::Canvas(cols*dim_x+2, rows*(dim_y+1));
+	if(screen.dimx()<194){
+		std::string v_text = "Too little horizontal space";
+		canvas.DrawText(0,0, v_text);
+		return canvas;
+	}else if(screen.dimy()<45){
+		std::string h_text = "Too little vertical space";
+		canvas.DrawText(0,0, h_text);
+		return canvas;	
+	}
 
 	// Draw the Main axis from point 0, 0
 	canvas.DrawPointLine(0, 0, cols*dim_x, 0, ftxui::Color::White);
    	canvas.DrawPointLine(0, 0, 0, rows*dim_y, ftxui::Color::White);
 
 	// Drawing the grid of lines
-	for ( int r = 0; r <= rows; r++){
+	for ( int r = 0; r < rows; r++){
 		for ( int c = 0; c <= cols; c++){
 			canvas.DrawPointLine(c*dim_x+dim_x, 
 								 0, 
@@ -95,7 +103,6 @@ ftxui::Canvas matrix_to_canvas(Grid grid){
 }
  
 int main(int argc, const char* argv[]) {
-
 	using namespace ftxui;
 
 	//Create the screen and calculate grid size
@@ -105,20 +112,26 @@ int main(int argc, const char* argv[]) {
 	Grid grid;
 
 	auto grid_renderer = Renderer( [&] { 
-		return canvas(matrix_to_canvas(grid));
+		int dim_x = (int)(screen.dimx()*1.6)/grid.width();
+		int dim_y = (int)((screen.dimy()*4)/(grid.height()+1));
+		return canvas(matrix_to_canvas(grid, dim_y, dim_x, screen));
 	});
 
 	auto y_calc = ( [&] (int cols) {
+		int dim_y = (int)((screen.dimy()*4)/(grid.height()+1));
+
 		if(cols>0){
-			return (cols-1)/3;
+			return (cols-1)/(screen.dimy()/dim_y);
 		}
 		return cols;
 	});
 
 	auto x_calc = ( [&] (int rows) {
+		int dim_x = (int)(screen.dimx()*1.6)/grid.width();
+
 		int rows_temp = rows - 1;
-		int rows_div = (rows_temp / 15) * 2;
-		int rows_mod = rows_temp % 15;
+		int rows_div = (rows_temp / dim_x) * 2;
+		int rows_mod = rows_temp % dim_x;
 
 		if(rows_mod > 7) rows_div++;
 		return rows_div;	
@@ -175,7 +188,7 @@ int main(int argc, const char* argv[]) {
 		   	clear_button
 			});
 
-	auto components = Container::Horizontal({grid_with_mouse, buttons, menu});
+	auto components = ftxui::Container::Horizontal({grid_with_mouse, buttons, menu});
 
 	auto console_renderer = Renderer(components, [&] {
 		return hbox({ 
