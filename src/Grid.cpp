@@ -131,20 +131,22 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 	}
 
 	// if another mouse action is made then do nothing
-	if(!left_click) return;
-
-	// if the mouse position changes but cell not then return 
-	if(row == this->last_y && col == this->last_x){
+	if(!left_click) {
 		return;
 	}
-	else
-	{
-		this->last_y = row;
-		this->last_x = col;
-	}
-
 
 	if(mouse_pressed){
+		if(border_set || point_set){
+			// if the mouse position changes but cell not then return 
+			if(row == this->last_y && col == this->last_x){
+				return;
+			}
+			else {
+				this->last_y = row;
+				this->last_x = col;
+			}
+		}
+
 		if(!point_set){
 
 			if(address_ind == Type(wall) ||
