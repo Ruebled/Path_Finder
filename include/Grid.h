@@ -25,6 +25,9 @@ class Grid {
 		const unsigned int end_y = 7;
 		const unsigned int end_x = 14;
 
+		// Remember current state
+		int click_state = 0;
+
 		// Checkable flags during moving and grid drawing
 		int border_set = 0;
 		int point_set = 0;

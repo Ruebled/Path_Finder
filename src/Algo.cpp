@@ -1,17 +1,16 @@
-#include <unistd.h>
-#include <string>
-#include <map>
-#include <queue>
-#include <algorithm>
+#include "Algo.h"
 
-#include "Matrix.h"
-#include "Grid.h"
+// Global variables performance report
+// variable cpu_time 
+float cpu_time = 0;
 
-std::vector<point> get_neighbors(Matrix& mat, point t_point);
-bool in_dict(point point, std::map<struct point, struct point>& t_map);
+// cpu_time variable text
+float real_time = 0;
+
+// Global variable for thread status
+extern bool thread_active;
 
 void BFS(Matrix& matrix){
-
 	// The code
 	point start_point = matrix.get_start_point();
 
@@ -24,7 +23,13 @@ void BFS(Matrix& matrix){
 	// Define in outer scope the current point that is checked
 	point current;
 
+	std::chrono::duration<double> cpu_chrono_time(0);
+
+	auto real_time_start = std::chrono::steady_clock::now();
 	while(!frontier.empty()){
+		// Start time
+		auto cpu_time_start = std::chrono::steady_clock::now();
+
 		current = frontier.front();
 		frontier.pop();
 
@@ -37,6 +42,14 @@ void BFS(Matrix& matrix){
 				}
 				usleep(15*1000);
 			}
+			auto real_time_end = std::chrono::steady_clock::now();
+			std::chrono::duration<double> real_elapsed_time = real_time_end - real_time_start;
+
+			int real_time_int = std::chrono::floor<std::chrono::milliseconds>(real_elapsed_time).count();
+
+			// Time in miliseconds
+			real_time = (real_time_int)/1000 + 
+						((float) (real_time_int%1000))/1000;
 			break;
 		}
 
@@ -52,9 +65,21 @@ void BFS(Matrix& matrix){
 				}
 			}
 		}
+
+		auto cpu_time_end = std::chrono::steady_clock::now();
+		std::chrono::duration<double> cpu_elapsed_time = cpu_time_end - cpu_time_start;
+
+		cpu_chrono_time += cpu_elapsed_time;
+
 		usleep(20*1000);
 	}
 
+	int cpu_time_int = std::chrono::floor<std::chrono::nanoseconds>(cpu_chrono_time).count();
+
+	// Time in miliseconds
+	cpu_time = (float)(cpu_time_int)/1000000 + ((float) (cpu_time_int%1000000))/1000000;
+
+	thread_active = false;
 	return;
 }
 

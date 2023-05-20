@@ -29,8 +29,19 @@
 //#define dim_x 10
 //#define dim_y 10
 
+// Global variables
+// CPU time benchmark 
+extern float cpu_time;
+
+// Real time benchmark
+extern float real_time;
+
+// Thread status
+extern bool thread_active;
+
 // Cell color enum
-ftxui::Color Color_cell[] = { ftxui::Color::Black,
+ftxui::Color Color_cell[] = { 
+							  ftxui::Color::Black,
 							  ftxui::Color::Red,
 							  ftxui::Color::Green,
 							  ftxui::Color::Blue,
@@ -178,9 +189,25 @@ int main(int argc, const char* argv[]) {
 
 	auto menu = Container::Vertical({ Radiobox(&algorithms_name, &selected) });
 
-	auto start_button = Button("  Start  ", [&] { grid.solve(selected); })|bold;
-	auto reset_button = Button("  Reset  ", [&] { grid.reset(); })|bold;
-	auto clear_button = Button("  Clear  ", [&] { grid.clear(); })|bold;
+	auto button_style = ButtonOption::Animated(Color::Default, Color::GrayDark,
+                                             Color::Default, Color::White);
+
+	auto start_button = Button("  Start  ", 
+							   [&] { if(!thread_active){ grid.solve(selected); } }, 
+							   &button_style
+							  )|bold;
+	auto reset_button = Button("  Reset  ", [&] { grid.reset(); }, &button_style)|bold;
+	auto clear_button = Button("  Clear  ", [&] { grid.clear(); }, &button_style)|bold;
+
+	// Generate shorter string from float(fractional digits less)
+	auto toShorterFloat = [](float time, int len) {
+			std::string real_time_string = std::to_string(time);
+			std::string real_time_string_trunc (
+					real_time_string.begin(),
+					real_time_string.begin()+len
+					);
+			return text(real_time_string_trunc);
+	};
 
 	auto buttons = Container::Horizontal({
 			start_button,
@@ -218,8 +245,22 @@ int main(int argc, const char* argv[]) {
 					separatorEmpty(),
 					separatorEmpty(),
 					menu->Render()
-				}),
+					}),
 				filler(),
+				separator(),
+				vbox({
+						text("Performance") | center,
+						hbox({
+								text("CPU time: "),
+								toShorterFloat(cpu_time, 7),
+								text(" ms")
+						})|center,
+						hbox({
+							text("Real time: "),
+							toShorterFloat(real_time, 5),
+							text(" s")
+						})|center,
+					}),
 				separator(),
 				hbox({ buttons->Render()}) | center
 			})|border)

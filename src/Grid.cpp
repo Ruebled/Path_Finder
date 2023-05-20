@@ -1,8 +1,15 @@
 #include <thread>
+#include <string>
 
 #include "Grid.h"
 #include "Matrix.h"
 #include "Algo.h"
+
+// Global variable for thread status
+bool thread_active = false;
+
+extern float cpu_time;
+extern float real_time;
 
 Grid::Grid(){ 
 	matrix = Matrix();
@@ -46,6 +53,11 @@ void Grid::clear(){
 			matrix[row][col] = Type(empty);
 		}
 	}
+	// Null benchmark value
+	cpu_time = 0;
+	real_time = 0;
+
+	return;
 }
 
 void Grid::reset(){
@@ -63,6 +75,10 @@ void Grid::reset(){
 
 	// Set end point
 	matrix[end_y][end_x] = Type(end);
+
+	// Null benchmark value
+	cpu_time = 0;
+	real_time = 0;
 }
 
 void Grid::solve(unsigned int choice){
@@ -90,6 +106,8 @@ void Grid::solve(unsigned int choice){
 	// Detach the thread
 	th.detach();
 
+	thread_active = true;
+
 	return;
 }
 
@@ -103,7 +121,6 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 	int &address_ind = matrix[row][col];
 
 	if(!mouse_pressed){
-		// Finish border set...
 		border_set = 0;
 		if(point_set){
 			if(!end_set){
@@ -148,11 +165,10 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 		}
 
 		if(!point_set){
-
 			if(address_ind == Type(wall) ||
 			   address_ind == Type(visited) ||
 			   address_ind == Type(path)
-			   ){
+			  ){
 				border_set = 1;
 				address_ind = Type(empty);	
 				return;
@@ -170,8 +186,14 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 		if(address_ind == 1){
 			if(!end_set){ return; }
 
-			temp_x = col;
-			temp_y = row;
+			// When click on start cell save the position
+			this->last_y = row;
+			this->last_x = col;
+
+			this->temp_x = col;
+			this->temp_y = row;
+			
+			// Set point_set state to "setting"
 			point_set = 1;
 
 			address_ind = 0;
@@ -181,11 +203,19 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 
 		if(address_ind == 2){
 			if(!start_set){ return; }
+			
+			
+			// When click on end cell save the position
+			this->last_y = row;
+			this->last_x = col;
 
-			temp_x = col;
-			temp_y = row;
+			this->temp_x = col;
+			this->temp_y = row;
+
+			// Set point_set state to "setting"
 			point_set = 1;
 
+			// Set that cell to empty
 			address_ind = 0;
 			end_set = 0;
 			return;
