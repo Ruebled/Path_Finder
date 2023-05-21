@@ -51,14 +51,13 @@ void BFS(Matrix& matrix){
 				// Path delay
 				usleep(15*1000);
 			}
+			// Stop real_time computing
 			auto real_time_end = std::chrono::steady_clock::now();
 			std::chrono::duration<double> real_elapsed_time = real_time_end - real_time_start;
-
+			// Get real_time in milliseconds
 			int real_time_int = std::chrono::floor<std::chrono::milliseconds>(real_elapsed_time).count();
 
-			// Time in miliseconds
-			real_time = (real_time_int)/1000 + 
-				((float) (real_time_int%1000))/1000;
+			// subtrack one(stop point) from distance path
 			distance_path--;
 
 			// In case of a path clear all visited cells
@@ -72,6 +71,10 @@ void BFS(Matrix& matrix){
 					usleep(10*1000);
 				}
 			}
+
+			// Time in miliseconds of real till path found
+			real_time = (real_time_int)/1000 + 
+				((float) (real_time_int%1000))/1000;
 
 			break;
 		}
