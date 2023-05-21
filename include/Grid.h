@@ -2,20 +2,16 @@
 #define GRID_H
 
 #include "Matrix.h"
+#include "FileMaps.h"
 
 // Cell types enum
 enum Type {empty, start, end, wall, visited, path};
 
 class Grid {
 	private:
-		// Temporary variables for storing the point from
-		// where start_point or end_point where taken
-		int temp_x;
-		int temp_y;
-
 		// Last cell addresses where mouse where positioned
-		int last_x = 0;
-		int last_y = 0;
+		int last_x = -1;
+		int last_y = -1;
 
 		// Starting point reset location
 		const unsigned int start_y = 7;
@@ -26,16 +22,29 @@ class Grid {
 		const unsigned int end_x = 14;
 
 		// Remember current state
-		int click_state = 0;
+		// default 0
+		// border_set 1
+		// empty_set 2
+		// start_set 3
+		// end_set 4
+		int set_state = 0;
+
+		bool cell_pos_changed = false;
 
 		// Checkable flags during moving and grid drawing
-		int border_set = 0;
-		int point_set = 0;
 		int start_set = 1;
 		int end_set = 1;
 
+		// Last cell address save for restoring start and end around
+		int last_row;
+		int last_col;
+		int last_cell_state = Type(empty);
+
 		// Matrix class with needed overloading
 		Matrix matrix;
+
+		// FileMaps class that reads from file
+		FileMaps maps;
 
 	public:
 		Grid();
@@ -52,6 +61,8 @@ class Grid {
 		void reset();
 
 		void solve(unsigned int);
+
+		void draw_map();
 
 		void on_mouse_event(int, int, bool, int);
 };

@@ -22,10 +22,24 @@ void Matrix::set_start(unsigned int _syPos, unsigned int _sxPos){
 	return;
 }
 
+void Matrix::set_end(unsigned int _eyPos, unsigned int _exPos){
+	this->eyPos = _eyPos;	
+	this->exPos = _exPos;
+
+	return;
+}
+
 point Matrix::get_start_point(){
 	point temp;
 	temp.y = this->syPos;
 	temp.x = this->sxPos;
+	return temp;
+}
+
+point Matrix::get_end_point(){
+	point temp;
+	temp.y = this->eyPos;
+	temp.x = this->exPos;
 	return temp;
 }
 

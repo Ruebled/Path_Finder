@@ -27,6 +27,7 @@ add_executable(Path_finder
 	src/main.cpp 
 	src/Grid.cpp
 	src/Matrix.cpp
+	src/FileMaps.cpp
 	src/Algo.cpp
 )
 

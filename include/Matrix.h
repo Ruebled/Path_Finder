@@ -31,6 +31,10 @@ class Matrix {
 		unsigned int sxPos;
 		unsigned int syPos;
 
+		// Ending point location
+		unsigned int exPos;
+		unsigned int eyPos;
+
 		unsigned int dim_x = 20; // cell on x axis of the grid
 		unsigned int dim_y = 14; // cell on y axis of the grid
 
@@ -45,11 +49,13 @@ class Matrix {
 		Matrix_row operator[](unsigned int x);
 
 		void set_start(unsigned int syPos, unsigned int sxPos);
+		void set_end(unsigned int eyPos, unsigned int exPos);
 
 		unsigned int width();
 		unsigned int height();
 
 		point get_start_point();
+		point get_end_point();
 };
 
 #endif

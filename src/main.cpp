@@ -186,18 +186,32 @@ int main(int argc, const char* argv[]) {
 		"Placeholder"
 	};
 
-
 	auto menu = Container::Vertical({ Radiobox(&algorithms_name, &selected) });
 
+	// Define the buttons and their functions
 	auto button_style = ButtonOption::Animated(Color::Default, Color::GrayDark,
                                              Color::Default, Color::White);
 
-	auto start_button = Button("  Start  ", 
+	auto start_button = Button("Start", 
 							   [&] { if(!thread_active){ grid.solve(selected); } }, 
 							   &button_style
 							  )|bold;
-	auto reset_button = Button("  Reset  ", [&] { grid.reset(); }, &button_style)|bold;
-	auto clear_button = Button("  Clear  ", [&] { grid.clear(); }, &button_style)|bold;
+
+	auto reset_button = Button("Reset", 
+							   [&] { if(!thread_active){ grid.reset(); } }, 
+							   &button_style
+							  )|bold;
+
+	auto clear_button = Button("Clear", 
+							   [&] { if(!thread_active){ grid.clear(); } }, 
+							   &button_style
+							  )|bold;
+
+	auto random_button = Button("Map",
+							   [&] { if(!thread_active){ grid.draw_map(); } },
+							   &button_style
+							  )|bold;
+
 
 	// Generate shorter string from float(fractional digits less)
 	auto toShorterFloat = [](float time, int len) {
@@ -212,7 +226,8 @@ int main(int argc, const char* argv[]) {
 	auto buttons = Container::Horizontal({
 			start_button,
 		   	reset_button,
-		   	clear_button
+		   	clear_button,
+			random_button
 			});
 
 	auto components = ftxui::Container::Horizontal({grid_with_mouse, buttons, menu});
