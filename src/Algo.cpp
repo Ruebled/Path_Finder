@@ -7,6 +7,9 @@ float cpu_time = 0;
 // cpu_time variable text
 float real_time = 0;
 
+// distance of the path
+int distance_path = 0;
+
 // Global variable for thread status
 extern bool thread_active;
 
@@ -40,6 +43,7 @@ void BFS(Matrix& matrix){
 				if(matrix[current.y][current.x] != Type(start)){
 					matrix[current.y][current.x] = Type(path);
 				}
+				distance_path++;
 				usleep(15*1000);
 			}
 			auto real_time_end = std::chrono::steady_clock::now();
@@ -50,6 +54,7 @@ void BFS(Matrix& matrix){
 			// Time in miliseconds
 			real_time = (real_time_int)/1000 + 
 						((float) (real_time_int%1000))/1000;
+			distance_path--;
 			break;
 		}
 

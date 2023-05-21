@@ -11,6 +11,7 @@ bool thread_active = false;
 
 extern float cpu_time;
 extern float real_time;
+extern int distance_path;
 
 Grid::Grid(){ 
 	this->matrix = Matrix();
@@ -62,6 +63,7 @@ void Grid::clear(){
 	// Null benchmark value
 	cpu_time = 0;
 	real_time = 0;
+	distance_path = 0;
 
 	return;
 }
@@ -85,9 +87,15 @@ void Grid::reset(){
 	// Null benchmark value
 	cpu_time = 0;
 	real_time = 0;
+	distance_path = 0;
 }
 
 void Grid::solve(unsigned int choice){
+	// Null benchmark value
+	cpu_time = 0;
+	real_time = 0;
+	distance_path = 0;
+
 	for(int row = 0; row < matrix.height(); row++){
 		for(int col = 0; col < matrix.width(); col++){
 			if(matrix[row][col] == Type(visited) ||
@@ -152,6 +160,9 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 		}else if(set_state == 4){
 			matrix.set_end(row, col);
 		}
+
+		this->last_y = -1;
+		this->last_x = -1;
 
 		this->set_state = 0;
 

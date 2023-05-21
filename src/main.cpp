@@ -36,6 +36,9 @@ extern float cpu_time;
 // Real time benchmark
 extern float real_time;
 
+// Distance of the found path
+extern int distance_path;
+
 // Thread status
 extern bool thread_active;
 
@@ -274,6 +277,10 @@ int main(int argc, const char* argv[]) {
 							text("Real time: "),
 							toShorterFloat(real_time, 5),
 							text(" s")
+						})|center,
+						hbox({
+							text("Distance: "),
+							text(std::to_string(distance_path))
 						})|center,
 					}),
 				separator(),
