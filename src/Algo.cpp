@@ -17,8 +17,12 @@ void BFS(Matrix& matrix){
 	// The code
 	point start_point = matrix.get_start_point();
 
-	std::queue<point> frontier;
-	frontier.push(start_point);
+	// Queue to store neighbors for further processing
+	std::queue<point> neigh;
+	neigh.push(start_point);
+
+	// Queue to store all neighbors
+	std::deque<point> neigh_reverse;
 
 	std::map<point, point> came_from;
 	came_from[start_point] = start_point;
@@ -29,12 +33,12 @@ void BFS(Matrix& matrix){
 	std::chrono::duration<double> cpu_chrono_time(0);
 
 	auto real_time_start = std::chrono::steady_clock::now();
-	while(!frontier.empty()){
+	while(!neigh.empty()){
 		// Start time
 		auto cpu_time_start = std::chrono::steady_clock::now();
 
-		current = frontier.front();
-		frontier.pop();
+		current = neigh.front();
+		neigh.pop();
 
 		if(matrix[current.y][current.x] == Type(end)){
 			// Reverse the found path
@@ -44,6 +48,7 @@ void BFS(Matrix& matrix){
 					matrix[current.y][current.x] = Type(path);
 				}
 				distance_path++;
+				// Path delay
 				usleep(15*1000);
 			}
 			auto real_time_end = std::chrono::steady_clock::now();
@@ -53,8 +58,21 @@ void BFS(Matrix& matrix){
 
 			// Time in miliseconds
 			real_time = (real_time_int)/1000 + 
-						((float) (real_time_int%1000))/1000;
+				((float) (real_time_int%1000))/1000;
 			distance_path--;
+
+			// In case of a path clear all visited cells
+			point rev;
+			while(!neigh_reverse.empty()){
+				rev = neigh_reverse.back();
+				neigh_reverse.pop_back();
+				if(matrix[rev.y][rev.x] == Type(visited)){
+					matrix[rev.y][rev.x] = Type(empty);
+					// Remove delay
+					usleep(10*1000);
+				}
+			}
+
 			break;
 		}
 
@@ -62,7 +80,9 @@ void BFS(Matrix& matrix){
 		for (int i = 0; i < near.size(); i++)
 		{
 			if (!in_dict(point{near[i].y,near[i].x}, came_from)){
-				frontier.push(near[i]);
+				neigh.push(near[i]);
+				neigh_reverse.push_back(near[i]);
+
 				came_from[near[i]] = current;
 
 				if(matrix[near[i].y][near[i].x] != Type(end)){
@@ -76,6 +96,7 @@ void BFS(Matrix& matrix){
 
 		cpu_chrono_time += cpu_elapsed_time;
 
+		// Visited delay
 		usleep(20*1000);
 	}
 
@@ -99,7 +120,7 @@ std::vector<point> get_neighbors(Matrix& mat, point t_point){
 
 	if(px+1 < width){
 		if(mat[t_point.y][px+1] == Type(empty) ||
-			mat[t_point.y][px+1] == Type(end))
+				mat[t_point.y][px+1] == Type(end))
 
 		{
 			neigh.push_back(point{t_point.y, px+1});
@@ -108,7 +129,7 @@ std::vector<point> get_neighbors(Matrix& mat, point t_point){
 
 	if(px > 0){
 		if(mat[t_point.y][px-1] == Type(empty) ||
-		   mat[t_point.y][px-1] == Type(end))
+				mat[t_point.y][px-1] == Type(end))
 		{
 			neigh.push_back(point{t_point.y, px-1});
 		}
@@ -116,7 +137,7 @@ std::vector<point> get_neighbors(Matrix& mat, point t_point){
 
 	if(py+1 < height){
 		if(mat[py+1][t_point.x] == Type(empty) ||
-			mat[py+1][t_point.x] == Type(end))
+				mat[py+1][t_point.x] == Type(end))
 
 		{
 			neigh.push_back(point{py+1, t_point.x});
@@ -125,7 +146,7 @@ std::vector<point> get_neighbors(Matrix& mat, point t_point){
 
 	if(py > 0){
 		if(mat[py-1][t_point.x] == Type(empty) ||
-			mat[py-1][t_point.x] == Type(end))
+				mat[py-1][t_point.x] == Type(end))
 		{
 			neigh.push_back(point{py-1, t_point.x});
 		}
