@@ -7,6 +7,9 @@
 #include <thread> //Implement multithreading version
 #include <chrono>
 
+// Terminal state restor headers
+#include <signal.h>
+#include <termios.h>
 
 // Ftxui includes
 #include "ftxui/screen/color.hpp"
@@ -41,6 +44,12 @@ extern int distance_path;
 
 // Thread status
 extern bool thread_active;
+
+// Terminal state save var
+struct termios Original_Termios;
+
+// UI Thread refresh state
+std::atomic<bool> refresh_ui_continue;
 
 // Cell color enum
 ftxui::Color Color_cell[] = { 
@@ -117,6 +126,10 @@ ftxui::Canvas matrix_to_canvas(Grid grid, int dim_y, int dim_x, ftxui::Screen& s
 }
  
 int main(int argc, const char* argv[]) {
+
+	//Save terminal state for latter restoring 
+	tcgetattr(STDIN_FILENO, &Original_Termios);
+
 	using namespace ftxui;
 
 	//Create the screen and calculate grid size
@@ -291,26 +304,28 @@ int main(int argc, const char* argv[]) {
 		});
 	});
 
-	console_renderer |= CatchEvent([&](Event key) {
-		if(key.is_character()){
-			if(key == Event::Character('S')){
-				grid.map_save(); 
-			}
-		}	
-		return false;
-	});
-	
+	// Maps clear key event
 	console_renderer |= CatchEvent([&](Event key) {
 		if(key.is_character()){
 			if(key == Event::Character('R')){
 				grid.map_clear(); 
+			}
+			if(key == Event::Character('S')){
+				grid.map_save(); 
+			}
+			if(key == Event::Character('Q')){
+				// Stop UI refresh
+				refresh_ui_continue = false;	
+				std::cout << "\033[2J\033[1;1H";
+				tcsetattr(STDIN_FILENO, TCSANOW, &Original_Termios);
+				std::exit(EXIT_SUCCESS);
 			}
 		}	
 		return false;
 	});
 
 	// Threading the refresh ui program
-	std::atomic<bool> refresh_ui_continue = true;
+	refresh_ui_continue = true;
 	std::thread refresh_ui([&] {
 		while (refresh_ui_continue) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
