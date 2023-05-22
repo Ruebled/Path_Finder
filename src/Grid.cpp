@@ -24,8 +24,8 @@ Grid::Grid(){
 } 
 
 Grid::Grid(unsigned int rows, unsigned int cols):
-									matrix(Matrix(rows, cols))
-									//,map(FileMaps(rows, cols))
+	matrix(Matrix(rows, cols))
+	//,map(FileMaps(rows, cols))
 {
 	Grid::reset();
 }
@@ -104,7 +104,7 @@ void Grid::solve(unsigned int choice){
 			}
 		}
 	}
-	
+
 	auto func = &BFS;
 
 	//switch(choice){
@@ -125,8 +125,41 @@ void Grid::solve(unsigned int choice){
 	return;
 }
 
+void Grid::map_clear(){
+	maps.maps_delete();
+}
+
+void Grid::map_save(){
+	std::vector<std::vector<int>> map;
+
+	map.resize(matrix.height(), std::vector<int>(matrix.width(), 0));
+
+	for(int row = 0; row < matrix.height(); row++){
+		for(int col = 0; col < matrix.width(); col++){
+			if(matrix[row][col] == Type(start) || 
+			   matrix[row][col] == Type(end) || 
+			   matrix[row][col] == Type(wall)){
+				map[row][col] = matrix[row][col];
+			}else{
+				map[row][col] = Type(empty);
+			}
+		}
+	}
+	this->maps.save_map(map);		
+	return;
+}
+
 void Grid::draw_map(){
 	std::vector<std::vector<int>> map = this->maps.getNext();	
+
+	// Check for 0 or empty elements of map
+	int diff = 0;
+	for(std::vector line : map){
+		for(int num : line){
+			if(num != 0) diff++;
+		}
+	}
+	if(!diff) return;
 
 	int cols = matrix.width();
 	int rows = matrix.height();

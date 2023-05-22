@@ -63,6 +63,8 @@ class Grid {
 		void solve(unsigned int);
 
 		void draw_map();
+		void map_save();
+		void map_clear();
 
 		void on_mouse_event(int, int, bool, int);
 };

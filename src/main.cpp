@@ -173,9 +173,11 @@ int main(int argc, const char* argv[]) {
 								mouse.button == Mouse::Left,
 				   				mouse.motion
 								);
+
 		}
 		return false;
 	});
+
 
 	int value = 0;
 
@@ -210,7 +212,7 @@ int main(int argc, const char* argv[]) {
 							   &button_style
 							  )|bold;
 
-	auto random_button = Button("Map",
+	auto map_button = Button("Map",
 							   [&] { if(!thread_active){ grid.draw_map(); } },
 							   &button_style
 							  )|bold;
@@ -230,10 +232,10 @@ int main(int argc, const char* argv[]) {
 			start_button,
 		   	reset_button,
 		   	clear_button,
-			random_button
+			map_button
 			});
 
-	auto components = ftxui::Container::Horizontal({grid_with_mouse, buttons, menu});
+	auto components = ftxui::Container::Horizontal({grid_with_mouse,  buttons, menu});
 
 	auto console_renderer = Renderer(components, [&] {
 		return hbox({ 
@@ -287,6 +289,24 @@ int main(int argc, const char* argv[]) {
 				hbox({ buttons->Render()}) | center
 			})|border)
 		});
+	});
+
+	console_renderer |= CatchEvent([&](Event key) {
+		if(key.is_character()){
+			if(key == Event::Character('S')){
+				grid.map_save(); 
+			}
+		}	
+		return false;
+	});
+	
+	console_renderer |= CatchEvent([&](Event key) {
+		if(key.is_character()){
+			if(key == Event::Character('R')){
+				grid.map_clear(); 
+			}
+		}	
+		return false;
 	});
 
 	// Threading the refresh ui program
