@@ -35,11 +35,10 @@ class Matrix {
 		unsigned int exPos;
 		unsigned int eyPos;
 
-		unsigned int dim_x = 20; // cell on x axis of the grid
-		unsigned int dim_y = 14; // cell on y axis of the grid
+		unsigned int cells_x = 20; // cell on x axis of the grid
+		unsigned int cells_y = 14; // cell on y axis of the grid
 
 		std::vector<std::vector<int>> matrix;
-
 
 	public:
 		Matrix();

@@ -9,6 +9,10 @@ enum Type {empty, start, end, wall, visited, path};
 
 class Grid {
 	private:
+		// Grid cells dimensions in braille points
+		int dim_cell_x = 15;
+		int dim_cell_y = 12;
+
 		// Last cell addresses where mouse where positioned
 		int last_x = -1;
 		int last_y = -1;
@@ -51,6 +55,9 @@ class Grid {
 		Grid(unsigned int, unsigned int);
 		~Grid();
 
+		int cell_width();
+		int cell_height();
+
 		int width();
 		int height();
 
@@ -60,7 +67,7 @@ class Grid {
 		void clear();
 		void reset();
 
-		void solve(unsigned int);
+		void solve(int);
 
 		void draw_map();
 		void map_save();

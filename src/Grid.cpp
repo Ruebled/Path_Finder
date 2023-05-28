@@ -13,7 +13,7 @@ extern float cpu_time;
 extern float real_time;
 extern int distance_path;
 
-Grid::Grid(){ 
+Grid::Grid() {
 	this->matrix = Matrix();
 	this->maps = FileMaps();
 
@@ -21,16 +21,17 @@ Grid::Grid(){
 	matrix.set_end(this->end_y, this->end_x);
 
 	Grid::reset();
-} 
-
-Grid::Grid(unsigned int rows, unsigned int cols):
-	matrix(Matrix(rows, cols))
-	//,map(FileMaps(rows, cols))
-{
-	Grid::reset();
 }
 
 Grid::~Grid(){ } // Grid Destructor, just to be
+
+int Grid::cell_width(){
+	return this->dim_cell_x;
+}
+
+int Grid::cell_height(){
+	return this->dim_cell_y;
+}
 
 int Grid::width(){
 	return matrix.width();
@@ -90,7 +91,7 @@ void Grid::reset(){
 	distance_path = 0;
 }
 
-void Grid::solve(unsigned int choice){
+void Grid::solve(int choice){
 	// Null benchmark value
 	cpu_time = 0;
 	real_time = 0;

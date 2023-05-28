@@ -24,11 +24,12 @@ include_directories(include)
 set(CMAKE_BUILD_TYPE Debug)
 
 add_executable(Path_finder 
-	src/main.cpp 
+	src/PathFinder.cpp 
 	src/Grid.cpp
 	src/Matrix.cpp
 	src/FileMaps.cpp
 	src/Algo.cpp
+	src/screen.cpp
 )
 
 target_link_libraries(Path_finder

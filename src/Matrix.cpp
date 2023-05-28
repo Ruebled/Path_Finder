@@ -4,11 +4,7 @@
 #include "Matrix_row.h"
 
 Matrix::Matrix(){
-	matrix.resize(dim_y, std::vector<int>(dim_x, 0));
-}
-
-Matrix::Matrix(unsigned int y, unsigned int x):dim_y(y), dim_x(x) {
-	matrix.resize(y, std::vector<int>(x, 0));
+	matrix.resize(cells_y, std::vector<int>(cells_x, 0));
 }
 
 Matrix_row Matrix::operator[](unsigned int x) {
@@ -28,25 +24,19 @@ void Matrix::set_end(unsigned int _eyPos, unsigned int _exPos){
 
 	return;
 }
-
+//change to make shorter
 point Matrix::get_start_point(){
-	point temp;
-	temp.y = this->syPos;
-	temp.x = this->sxPos;
-	return temp;
+	return point{this->syPos, this->sxPos};
 }
 
 point Matrix::get_end_point(){
-	point temp;
-	temp.y = this->eyPos;
-	temp.x = this->exPos;
-	return temp;
+	return point{this->eyPos, this->exPos};
 }
 
 unsigned int Matrix::width(){
-	return this->dim_x;
+	return this->cells_x;
 }
 
 unsigned int Matrix::height(){
-	return this->dim_y;
+	return this->cells_y;
 }

@@ -1,37 +1,4 @@
-// System includes
-#include <iostream>
-#include <vector>
-#include <stdio.h>
-#include <memory>
-#include <list>
-#include <thread> //Implement multithreading version
-#include <chrono>
-
-// Terminal state restor headers
-#include <signal.h>
-#include <termios.h>
-
-// Ftxui includes
-#include "ftxui/screen/color.hpp"
-#include "ftxui/screen/screen.hpp"
-
-#include "ftxui/dom/node.hpp"
-#include "ftxui/dom/canvas.hpp"
-#include "ftxui/dom/elements.hpp"
-
-#include "ftxui/component/component.hpp"
-#include "ftxui/component/component_base.hpp"
-#include "ftxui/component/captured_mouse.hpp"
-#include "ftxui/component/component_options.hpp"  
-#include "ftxui/component/screen_interactive.hpp"
-
-// Application local includes
-#include "Grid.h"
-
-////Block(cell) sizes in "braille dots"
-//#define dim_x 10
-//#define dim_y 10
-
+#include "screen.h"
 // Global variables
 // CPU time benchmark 
 extern float cpu_time;
@@ -51,82 +18,11 @@ struct termios Original_Termios;
 // UI Thread refresh state
 std::atomic<bool> refresh_ui_continue;
 
-// Cell color enum
-ftxui::Color Color_cell[] = { 
-							  ftxui::Color::Black,
-							  ftxui::Color::Red,
-							  ftxui::Color::Green,
-							  ftxui::Color::Blue,
-							  ftxui::Color::GrayDark,
-							  ftxui::Color::YellowLight
-							};
+// Variable for storing if diagonals will be used
+extern bool diag_checked;
 
-ftxui::Canvas matrix_to_canvas(Grid grid, int dim_y, int dim_x, ftxui::Screen& screen){
-	int rows = grid.height();
-	int cols = grid.width();
-
-	auto canvas = ftxui::Canvas(cols*dim_x+2, rows*(dim_y+1));
-	if(screen.dimx()<194){
-		std::string v_text = "Too little horizontal space";
-		canvas.DrawText(0,0, v_text);
-		return canvas;
-	}else if(screen.dimy()<45){
-		std::string h_text = "Too little vertical space";
-		canvas.DrawText(0,0, h_text);
-		return canvas;	
-	}
-
-	// Draw the Main axis from point 0, 0
-	canvas.DrawPointLine(0, 0, cols*dim_x, 0, ftxui::Color::White);
-   	canvas.DrawPointLine(0, 0, 0, rows*dim_y, ftxui::Color::White);
-
-	// Drawing the grid of lines
-	for ( int r = 0; r < rows; r++){
-		for ( int c = 0; c <= cols; c++){
-			canvas.DrawPointLine(c*dim_x+dim_x, 
-								 0, 
-								 c*dim_x+dim_x, 
-								 rows*dim_y, 
-								 ftxui::Color::White
-								 );
-		}
-		canvas.DrawPointLine(0, 
-							 r*dim_y+dim_y, 
-							 cols*dim_x, 
-							 r*dim_y+dim_y, 
-							 ftxui::Color::White
-							 );
-	}
-
-	// Fill the cells with colors
-	for ( int r = 0; r < rows; r++){
-		for ( int c = 0; c < cols; c++){
-			int color_ind = grid.get_index(r, c);
-
-			ftxui::Color cell_color = Color_cell[color_ind];
-
-			if(color_ind == 0){
-				continue;
-			}
-
-			for ( int l = 0; l <= dim_y-2; l++){
-				// r = rows
-				// c = cols
-
-				canvas.DrawPointLine(c*dim_x+2, 
-									 r*dim_y+1+l, 
-									 c*dim_x+dim_x-2, 
-									 r*dim_y+1+l, 
-									 cell_color);
-			}
-		}
-	}
-
-	return canvas;
-}
- 
+// main function of the application
 int main(int argc, const char* argv[]) {
-
 	//Save terminal state for latter restoring 
 	tcgetattr(STDIN_FILENO, &Original_Termios);
 
@@ -135,16 +31,16 @@ int main(int argc, const char* argv[]) {
 	//Create the screen and calculate grid size
 	auto screen = ScreenInteractive::Fullscreen();
 
-	// Define grid with default sizes
+	// Define grid default size
 	Grid grid;
 
+	// Return the grid converted to ftxui canvas 
 	auto grid_renderer = Renderer( [&] { 
-		int dim_x = (int)(screen.dimx()*1.6)/grid.width();
-		int dim_y = (int)((screen.dimy()*4)/(grid.height()+1));
-		return canvas(matrix_to_canvas(grid, dim_y, dim_x, screen));
+		return canvas(matrix_to_canvas(grid, screen));
 	});
 
-	auto y_calc = ( [&] (int cols) {
+	// Convert ftxui terminal y mouse pointer location to matrix grid unit
+	auto screen_to_cell_y = ([&] (int cols) {
 		int dim_y = (int)((screen.dimy()*4)/(grid.height()+1));
 
 		if(cols>0){
@@ -153,7 +49,8 @@ int main(int argc, const char* argv[]) {
 		return cols;
 	});
 
-	auto x_calc = ( [&] (int rows) {
+	// Convert ftxui terminal x mouse pointer location to matrix grid unit
+	auto screen_to_cell_x = ([&] (int rows) {
 		int dim_x = (int)(screen.dimx()*1.6)/grid.width();
 
 		int rows_temp = rows - 1;
@@ -164,36 +61,34 @@ int main(int argc, const char* argv[]) {
 		return rows_div;	
 	});
 
-	auto text_temp = ftxui::text("");
+	auto coord_temp = ftxui::text("");
 
 	auto grid_with_mouse = CatchEvent(grid_renderer, [&](Event e) {
 		if (e.is_mouse()) {
 			auto &mouse = e.mouse();
-			auto col_pixel = x_calc(mouse.x);//watch for any subtracting
-			auto row_pixel = y_calc(mouse.y);//watch for any subtracting
+			// Compute mouse position reffering to grid
+			auto col_pixel = screen_to_cell_x(mouse.x);
+			auto row_pixel = screen_to_cell_y(mouse.y);
 
-			// Exit if mouse in the left window
-			if(col_pixel>19) return false;
-			if(row_pixel>13) return false;
+			// Don't trigger mouse_event if mouse not on canvas
+			if(col_pixel>19 || row_pixel>13) return false;
 
-			// change the position of the mouse and display
-			char str[20];
+			// Create a string reflecting mouse position on canvas
+			char str[6];
 			sprintf(str, "%d %d", row_pixel, col_pixel);
-			text_temp = ftxui::text(str);	
+			coord_temp = ftxui::text(str);	
 
 			grid.on_mouse_event(row_pixel, 
 								col_pixel, 
 								mouse.button == Mouse::Left,
-				   				mouse.motion
+				   				mouse.motion/*mouse pressed/unpresed state*/
 								);
 
 		}
 		return false;
 	});
 
-
-	int value = 0;
-
+	// Radio buttons for choosing pathfinding algorithms
 	int selected = 0;
 
 	// The list for algorithms
@@ -204,7 +99,11 @@ int main(int argc, const char* argv[]) {
 		"Placeholder"
 	};
 
-	auto menu = Container::Vertical({ Radiobox(&algorithms_name, &selected) });
+	// Define checkbox for chosing diagonal finding
+	std::string diag_str = "Allow diagonal";
+
+	auto menu = Container::Vertical({ Radiobox(&algorithms_name, &selected),
+									  Checkbox(&diag_str, &diag_checked)});
 
 	// Define the buttons and their functions
 	auto button_style = ButtonOption::Animated(Color::Default, Color::GrayDark,
@@ -230,7 +129,6 @@ int main(int argc, const char* argv[]) {
 							   &button_style
 							  )|bold;
 
-
 	// Generate shorter string from float(fractional digits less)
 	auto toShorterFloat = [](float time, int len) {
 			std::string real_time_string = std::to_string(time);
@@ -240,6 +138,16 @@ int main(int argc, const char* argv[]) {
 					);
 			return text(real_time_string_trunc);
 	};
+	
+	// Instructions for using the game
+	Element instructions_en = vbox({
+		paragraph("This Project is visual implementation of some of the most known path finding algorithms."),
+		paragraph("Starting(red) and ending(green) point can be seen when opening the app."),
+		paragraph("Those can be drag and droped to change their position."),
+		paragraph("    Clicking and drawing on the empty cell will draw a wall(blue), that is working as a barrier for the path to be found."),
+		paragraph("    The algorithm used for path finding can be chosen from bellow by selecting the apropriate radiobutton."),
+		paragraph("    After pressing START, the path will be shown in YELLOW. And 'checked' cell in DARK-GRAY.")
+	});
 
 	auto buttons = Container::Horizontal({
 			start_button,
@@ -257,19 +165,12 @@ int main(int argc, const char* argv[]) {
 				hbox({ text("Welcome to Path Finder") })|center|bold,
 				hbox({
 						text("Coord: [Y] [X]: "), 
-						text_temp
+						coord_temp
 					 })|center,
 				separator(),
 				vbox({
 						text("Quick Introduction")|center,
-						vbox({
-							paragraph("This Project is visual implementation of some of the most known path finding algorithms."),
-							paragraph("Starting(red) and ending(green) point can be seen when opening the app."),
-							paragraph("Those can be drag and droped to change their position."),
-							paragraph("    Clicking and drawing on the empty cell will draw a wall(blue), that is working as a barrier for the path to be found."),
-							paragraph("    The algorithm used for path finding can be chosen from bellow by selecting the apropriate radiobutton."),
-							paragraph("    After pressing START, the path will be shown in YELLOW. And 'checked' cell in DARK-GRAY.")
-						})|borderEmpty|center
+						instructions_en|borderEmpty|center
 						}),
 				separator(),
 				text("PathFinding Algorithms")|center|bold,
@@ -299,7 +200,7 @@ int main(int argc, const char* argv[]) {
 						})|center,
 					}),
 				separator(),
-				hbox({ buttons->Render()}) | center
+				hbox({ buttons->Render()}) | center | focus
 			})|border)
 		});
 	});
@@ -317,6 +218,7 @@ int main(int argc, const char* argv[]) {
 				// Stop UI refresh
 				refresh_ui_continue = false;	
 				std::cout << "\033[2J\033[1;1H";
+				std::cout << "\033\143";
 				tcsetattr(STDIN_FILENO, TCSANOW, &Original_Termios);
 				std::exit(EXIT_SUCCESS);
 			}

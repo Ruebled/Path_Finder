@@ -5,7 +5,6 @@
 
 class FileMaps{
 	private:
-
 		std::string maps_file_name = "../map/source";
 
 		int left_pos = 0;
