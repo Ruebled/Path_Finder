@@ -9,6 +9,7 @@
 
 #include "Matrix.h"
 #include "Grid.h"
+#include "TimeTracker.h"
 
 void BreathFirstSearch(Matrix& matrix);
 void AStart(Matrix& matrix);

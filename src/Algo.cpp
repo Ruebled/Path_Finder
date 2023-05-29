@@ -1,11 +1,5 @@
 #include "Algo.h"
 
-// Global variables performance report
-// variable cpu_time 
-float cpu_time = 0;
-
-// cpu_time variable text
-float real_time = 0;
 
 // distance of the path
 int distance_path = 0;
@@ -17,19 +11,6 @@ extern bool thread_active;
 bool diag_checked = false;
 
 void BreathFirstSearch(Matrix& matrix){
-	//procedure BFS(G, root) is
-	//    let Q be a queue
-	//    label root as explored
-	//    Q.enqueue(root)
-	//    while Q is not empty do
-	//        v := Q.dequeue()
-	//        if v is the goal then
-	//            return v
-	//        for all edges from v to w in G.adjacentEdges(v) do
-	//            if w is not labeled as explored then
-	//                label w as explored
-	//                w.parent := v
-	//                Q.enqueue(w)
 	// The code
 	point start_point = matrix.get_start_point();
 
@@ -46,12 +27,14 @@ void BreathFirstSearch(Matrix& matrix){
 	// Define in outer scope the current point that is checked
 	point current;
 
-	std::chrono::duration<double> cpu_chrono_time(0);
+	// Create TimeTracker class for time counting
+	TimeTracker timeTracker;
+	// Start the stopwatch for real time
+	timeTracker.rlt_start();
 
-	auto real_time_start = std::chrono::steady_clock::now();
 	while(!neigh.empty()){
 		// Start time
-		auto cpu_time_start = std::chrono::steady_clock::now();
+		timeTracker.cpu_start();
 
 		current = neigh.front();
 		neigh.pop();
@@ -67,11 +50,9 @@ void BreathFirstSearch(Matrix& matrix){
 				// Path delay
 				usleep(15*1000);
 			}
-			// Stop real_time computing
-			auto real_time_end = std::chrono::steady_clock::now();
-			std::chrono::duration<double> real_elapsed_time = real_time_end - real_time_start;
-			// Get real_time in milliseconds
-			int real_time_int = std::chrono::floor<std::chrono::milliseconds>(real_elapsed_time).count();
+
+			// Pause the real time stopwatch
+			timeTracker.rlt_pause();
 
 			// subtrack one(stop point) from distance path
 			distance_path--;
@@ -88,10 +69,8 @@ void BreathFirstSearch(Matrix& matrix){
 				}
 			}
 
-			// Time in miliseconds of real till path found
-			real_time = (real_time_int)/1000 + 
-				((float) (real_time_int%1000))/1000;
-
+			// Time real in miliseconds, till path found
+			timeTracker.rlt_stop();
 			break;
 		}
 
@@ -112,19 +91,13 @@ void BreathFirstSearch(Matrix& matrix){
 			}
 		}
 
-		auto cpu_time_end = std::chrono::steady_clock::now();
-		std::chrono::duration<double> cpu_elapsed_time = cpu_time_end - cpu_time_start;
-
-		cpu_chrono_time += cpu_elapsed_time;
+		timeTracker.cpu_pause();
 
 		// Visited delay
 		usleep(20*1000);
 	}
 
-	int cpu_time_int = std::chrono::floor<std::chrono::nanoseconds>(cpu_chrono_time).count();
-
-	// Time in miliseconds
-	cpu_time = (float)(cpu_time_int)/1000000 + ((float) (cpu_time_int%1000000))/1000000;
+	timeTracker.cpu_stop();
 
 	thread_active = false;
 	return;
