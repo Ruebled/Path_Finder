@@ -11,7 +11,7 @@ ftxui::Color Color_cell[] = {
 							};
 
 ftxui::Canvas matrix_to_canvas(Grid grid, ftxui::Screen& screen){
-	int rows = grid.height();
+    int rows = grid.height();
 	int cols = grid.width();
 
 	int cell_dim_x = grid.cell_width();

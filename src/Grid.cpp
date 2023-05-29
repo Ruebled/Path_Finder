@@ -51,15 +51,19 @@ void Grid::set_value(unsigned int y, unsigned int x, unsigned int value){
 	return;
 }
 
-void Grid::clear(){
+void Grid::clear(int type){
 	// Clear cells to Type.empty
 	for(int row = 0; row < matrix.height(); row++){
 		for(int col = 0; col < matrix.width(); col++){
 			// Leave start and end point at their positions
-			if(matrix[row][col] == Type(start) || matrix[row][col] == Type(end)){
+			if(matrix[row][col] == Type(start) 
+				|| matrix[row][col] == Type(end) ){
 				continue;
 			}
-			matrix[row][col] = Type(empty);
+
+			if(matrix[row][col] == Type(type)){
+				matrix[row][col] = Type(empty);
+			}
 		}
 	}
 	// Null benchmark value
@@ -85,7 +89,6 @@ void Grid::reset(){
 
 	// Set end point
 	matrix[end_y][end_x] = Type(end);
-
 	// Null benchmark value
 	cpu_time = 0;
 	real_time = 0;
@@ -240,6 +243,10 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 
 					// Value of the cell
 					this->last_cell_state = Type(empty); 
+
+					// Clear the path if any
+					Grid::clear(Type(path));
+
 					break;
 
 				case Type(end):
@@ -251,6 +258,10 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 
 					// Value of the cell
 					this->last_cell_state = Type(empty); 
+
+					// Clear the path if any
+					Grid::clear(Type(path));
+
 					break;
 
 				default:

@@ -8,11 +8,13 @@ class TimeTracker {
 		std::chrono::time_point<std::chrono::steady_clock> rlt_end_t; 
 		std::chrono::duration<double> rlt_elapsed_t;
 		int rlt_int_t;
+		int rlt_count_state;
 
 		std::chrono::time_point<std::chrono::steady_clock> cpu_start_t;
 		std::chrono::time_point<std::chrono::steady_clock> cpu_end_t; 
 		std::chrono::duration<double> cpu_elapsed_t;
 		int cpu_int_t;
+		int cpu_count_state;
 
 	public:
 		TimeTracker();
@@ -24,6 +26,8 @@ class TimeTracker {
 		void cpu_start();
 		void cpu_pause();
 		void cpu_stop();
+
+		~TimeTracker();
 
 };
 

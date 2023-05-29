@@ -120,7 +120,10 @@ int main(int argc, const char* argv[]) {
 							  )|bold;
 
 	auto clear_button = Button("Clear", 
-							   [&] { if(!thread_active){ grid.clear(); } }, 
+							   [&] { if(!thread_active){ 
+								   grid.clear(Type(path)); 
+								   grid.clear(Type(wall));
+							   } }, 
 							   &button_style
 							  )|bold;
 
@@ -161,6 +164,7 @@ int main(int argc, const char* argv[]) {
 	auto console_renderer = Renderer(components, [&] {
 		return hbox({ 
 			grid_with_mouse->Render() | border,
+
 			flex_grow(vbox({
 				hbox({ text("Welcome to Path Finder") })|center|bold,
 				hbox({
@@ -175,6 +179,7 @@ int main(int argc, const char* argv[]) {
 				separator(),
 				text("PathFinding Algorithms")|center|bold,
 				separatorEmpty(),
+
 				hbox({
 					separatorEmpty(),
 					separatorEmpty(),
@@ -182,12 +187,13 @@ int main(int argc, const char* argv[]) {
 					}),
 				filler(),
 				separator(),
+
 				vbox({
 						text("Performance") | center,
 						hbox({
-								text("CPU time: "),
-								toShorterFloat(cpu_time, 7),
-								text(" ms")
+							text("CPU time: "),
+							toShorterFloat(cpu_time, 7),
+							text(" ms")
 						})|center,
 						hbox({
 							text("Real time: "),
@@ -201,6 +207,7 @@ int main(int argc, const char* argv[]) {
 					}),
 				separator(),
 				hbox({ buttons->Render()}) | center | focus
+
 			})|border)
 		});
 	});

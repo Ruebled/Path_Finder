@@ -29,6 +29,7 @@ void BreathFirstSearch(Matrix& matrix){
 
 	// Create TimeTracker class for time counting
 	TimeTracker timeTracker;
+
 	// Start the stopwatch for real time
 	timeTracker.rlt_start();
 
