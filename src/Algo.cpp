@@ -13,7 +13,23 @@ int distance_path = 0;
 // Global variable for thread status
 extern bool thread_active;
 
-void BFS(Matrix& matrix){
+// Diagonal calc 
+bool diag_checked = false;
+
+void BreathFirstSearch(Matrix& matrix){
+	//procedure BFS(G, root) is
+	//    let Q be a queue
+	//    label root as explored
+	//    Q.enqueue(root)
+	//    while Q is not empty do
+	//        v := Q.dequeue()
+	//        if v is the goal then
+	//            return v
+	//        for all edges from v to w in G.adjacentEdges(v) do
+	//            if w is not labeled as explored then
+	//                label w as explored
+	//                w.parent := v
+	//                Q.enqueue(w)
 	// The code
 	point start_point = matrix.get_start_point();
 
@@ -79,7 +95,9 @@ void BFS(Matrix& matrix){
 			break;
 		}
 
+		// Get a <point> vector of current location neighbors
 		std::vector<point> near = get_neighbors(matrix, current);
+
 		for (int i = 0; i < near.size(); i++)
 		{
 			if (!in_dict(point{near[i].y,near[i].x}, came_from)){
@@ -112,6 +130,11 @@ void BFS(Matrix& matrix){
 	return;
 }
 
+void AStar(Matrix& matrix){
+
+}
+
+
 std::vector<point> get_neighbors(Matrix& mat, point t_point){
 	std::vector<point> neigh;
 
@@ -121,41 +144,30 @@ std::vector<point> get_neighbors(Matrix& mat, point t_point){
 	unsigned int px = t_point.x;
 	unsigned int py = t_point.y;
 
-	if(px+1 < width){
-		if(mat[t_point.y][px+1] == Type(empty) ||
-				mat[t_point.y][px+1] == Type(end))
+	// Some magic (half asleep)
+	for(int row=-1; row<2; row++){
+		int t_y = py + row;
+		for(int col=-1; col<2; col++){
+			int t_x = px + col;
+			if(t_y < 0 || t_y >= height || t_x < 0 || t_x >= width) continue; 
 
-		{
-			neigh.push_back(point{t_point.y, px+1});
+			if(mat[t_y][t_x] != Type(empty) && mat[t_y][t_x] != Type(end)) continue;
+
+			//check if it's a diagonal to be pushed back 
+			if((t_y != py && t_x != px)){
+				if(diag_checked){
+					neigh.push_back(point{(unsigned int)t_y, (unsigned int)t_x});
+				}
+				continue;
+			}
+
+			//creating begin_address to copy digonal point to
+			auto b_a = neigh.begin();
+			//neigh.push_back(point{(unsigned int)t_y, (unsigned int)t_x});
+			b_a = neigh.insert(b_a, point{(unsigned int)t_y, (unsigned int)t_x});
 		}
 	}
 
-	if(px > 0){
-		if(mat[t_point.y][px-1] == Type(empty) ||
-				mat[t_point.y][px-1] == Type(end))
-		{
-			neigh.push_back(point{t_point.y, px-1});
-		}
-	}
-
-	if(py+1 < height){
-		if(mat[py+1][t_point.x] == Type(empty) ||
-				mat[py+1][t_point.x] == Type(end))
-
-		{
-			neigh.push_back(point{py+1, t_point.x});
-		}
-	}
-
-	if(py > 0){
-		if(mat[py-1][t_point.x] == Type(empty) ||
-				mat[py-1][t_point.x] == Type(end))
-		{
-			neigh.push_back(point{py-1, t_point.x});
-		}
-	}
-
-	std::random_shuffle(neigh.begin(), neigh.end());
 	return neigh;
 }
 
