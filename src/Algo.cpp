@@ -1,11 +1,5 @@
 #include "Algo.h"
 
-// Global variables performance report
-// variable cpu_time 
-float cpu_time = 0;
-
-// cpu_time variable text
-float real_time = 0;
 
 // distance of the path
 int distance_path = 0;
@@ -13,7 +7,10 @@ int distance_path = 0;
 // Global variable for thread status
 extern bool thread_active;
 
-void BFS(Matrix& matrix){
+// Diagonal calc 
+bool diag_checked = false;
+
+void BreathFirstSearch(Matrix& matrix){
 	// The code
 	point start_point = matrix.get_start_point();
 
@@ -30,12 +27,14 @@ void BFS(Matrix& matrix){
 	// Define in outer scope the current point that is checked
 	point current;
 
-	std::chrono::duration<double> cpu_chrono_time(0);
+	// Create TimeTracker class for time counting
+	TimeTracker timeTracker;
+	// Start the stopwatch for real time
+	timeTracker.rlt_start();
 
-	auto real_time_start = std::chrono::steady_clock::now();
 	while(!neigh.empty()){
 		// Start time
-		auto cpu_time_start = std::chrono::steady_clock::now();
+		timeTracker.cpu_start();
 
 		current = neigh.front();
 		neigh.pop();
@@ -51,11 +50,9 @@ void BFS(Matrix& matrix){
 				// Path delay
 				usleep(15*1000);
 			}
-			// Stop real_time computing
-			auto real_time_end = std::chrono::steady_clock::now();
-			std::chrono::duration<double> real_elapsed_time = real_time_end - real_time_start;
-			// Get real_time in milliseconds
-			int real_time_int = std::chrono::floor<std::chrono::milliseconds>(real_elapsed_time).count();
+
+			// Pause the real time stopwatch
+			timeTracker.rlt_pause();
 
 			// subtrack one(stop point) from distance path
 			distance_path--;
@@ -72,14 +69,14 @@ void BFS(Matrix& matrix){
 				}
 			}
 
-			// Time in miliseconds of real till path found
-			real_time = (real_time_int)/1000 + 
-				((float) (real_time_int%1000))/1000;
-
+			// Time real in miliseconds, till path found
+			timeTracker.rlt_stop();
 			break;
 		}
 
+		// Get a <point> vector of current location neighbors
 		std::vector<point> near = get_neighbors(matrix, current);
+
 		for (int i = 0; i < near.size(); i++)
 		{
 			if (!in_dict(point{near[i].y,near[i].x}, came_from)){
@@ -94,23 +91,22 @@ void BFS(Matrix& matrix){
 			}
 		}
 
-		auto cpu_time_end = std::chrono::steady_clock::now();
-		std::chrono::duration<double> cpu_elapsed_time = cpu_time_end - cpu_time_start;
-
-		cpu_chrono_time += cpu_elapsed_time;
+		timeTracker.cpu_pause();
 
 		// Visited delay
 		usleep(20*1000);
 	}
 
-	int cpu_time_int = std::chrono::floor<std::chrono::nanoseconds>(cpu_chrono_time).count();
-
-	// Time in miliseconds
-	cpu_time = (float)(cpu_time_int)/1000000 + ((float) (cpu_time_int%1000000))/1000000;
+	timeTracker.cpu_stop();
 
 	thread_active = false;
 	return;
 }
+
+void AStar(Matrix& matrix){
+
+}
+
 
 std::vector<point> get_neighbors(Matrix& mat, point t_point){
 	std::vector<point> neigh;
@@ -121,41 +117,30 @@ std::vector<point> get_neighbors(Matrix& mat, point t_point){
 	unsigned int px = t_point.x;
 	unsigned int py = t_point.y;
 
-	if(px+1 < width){
-		if(mat[t_point.y][px+1] == Type(empty) ||
-				mat[t_point.y][px+1] == Type(end))
+	// Some magic (half asleep)
+	for(int row=-1; row<2; row++){
+		int t_y = py + row;
+		for(int col=-1; col<2; col++){
+			int t_x = px + col;
+			if(t_y < 0 || t_y >= height || t_x < 0 || t_x >= width) continue; 
 
-		{
-			neigh.push_back(point{t_point.y, px+1});
+			if(mat[t_y][t_x] != Type(empty) && mat[t_y][t_x] != Type(end)) continue;
+
+			//check if it's a diagonal to be pushed back 
+			if((t_y != py && t_x != px)){
+				if(diag_checked){
+					neigh.push_back(point{(unsigned int)t_y, (unsigned int)t_x});
+				}
+				continue;
+			}
+
+			//creating begin_address to copy digonal point to
+			auto b_a = neigh.begin();
+			//neigh.push_back(point{(unsigned int)t_y, (unsigned int)t_x});
+			b_a = neigh.insert(b_a, point{(unsigned int)t_y, (unsigned int)t_x});
 		}
 	}
 
-	if(px > 0){
-		if(mat[t_point.y][px-1] == Type(empty) ||
-				mat[t_point.y][px-1] == Type(end))
-		{
-			neigh.push_back(point{t_point.y, px-1});
-		}
-	}
-
-	if(py+1 < height){
-		if(mat[py+1][t_point.x] == Type(empty) ||
-				mat[py+1][t_point.x] == Type(end))
-
-		{
-			neigh.push_back(point{py+1, t_point.x});
-		}
-	}
-
-	if(py > 0){
-		if(mat[py-1][t_point.x] == Type(empty) ||
-				mat[py-1][t_point.x] == Type(end))
-		{
-			neigh.push_back(point{py-1, t_point.x});
-		}
-	}
-
-	std::random_shuffle(neigh.begin(), neigh.end());
 	return neigh;
 }
 

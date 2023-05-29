@@ -1,5 +1,6 @@
 #include <thread>
 #include <string>
+#include <functional>
 
 #include "Grid.h"
 #include "Matrix.h"
@@ -106,15 +107,18 @@ void Grid::solve(int choice){
 		}
 	}
 
-	auto func = &BFS;
+	// Variable to store the function
+	std::function<void(Matrix&)> func;
 
-	//switch(choice){
-	//	case 0:
-	//		func = &BFS;
-	//		break;
-	//	default:
-	//		break;
-	//}
+	switch(choice){
+		case 0:
+			func = &BreathFirstSearch;
+			break;
+			//add rest of the cases
+		default:
+			func = &BreathFirstSearch;
+			break;
+	}
 
 	// Start the thread
 	std::thread th(func, std::ref(matrix));

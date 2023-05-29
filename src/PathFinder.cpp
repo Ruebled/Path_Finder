@@ -94,9 +94,9 @@ int main(int argc, const char* argv[]) {
 	// The list for algorithms
 	std::vector<std::string> algorithms_name = {
 		"Breadth First Search",
+		"Depth First Search",
 		"Djikstra",
-		"A*",
-		"Placeholder"
+		"A Star"
 	};
 
 	// Define checkbox for chosing diagonal finding

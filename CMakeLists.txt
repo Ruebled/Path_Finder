@@ -30,6 +30,7 @@ add_executable(Path_finder
 	src/FileMaps.cpp
 	src/Algo.cpp
 	src/screen.cpp
+	src/TimeTracker.cpp
 )
 
 target_link_libraries(Path_finder
