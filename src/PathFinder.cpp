@@ -29,7 +29,7 @@ int main(int argc, const char* argv[]) {
 	using namespace ftxui;
 
 	//Create the screen and calculate grid size
-	auto screen = ScreenInteractive::Fullscreen();
+	auto screen = ScreenInteractive::FitComponent();
 
 	// Define grid default size
 	Grid grid;
@@ -94,7 +94,6 @@ int main(int argc, const char* argv[]) {
 	// The list for algorithms
 	std::vector<std::string> algorithms_name = {
 		"Breadth First Search",
-		"Depth First Search",
 		"Djikstra",
 		"A Star"
 	};
@@ -159,6 +158,22 @@ int main(int argc, const char* argv[]) {
 			map_button
 			});
 
+	// Test with hoverable menu
+	std::vector<std::string> entries = {
+		"tribute"
+	};
+
+	int selected_1 = 0;
+	int selected_2 = 0;
+	int selected_3 = 0;
+	int selected_4 = 0;
+
+	int value = 0;
+
+	auto layout = Container::Vertical({
+					Button("tribute", [&]{value++;})
+					});
+
 	auto components = ftxui::Container::Horizontal({grid_with_mouse,  buttons, menu});
 
 	auto console_renderer = Renderer(components, [&] {
@@ -212,6 +227,12 @@ int main(int argc, const char* argv[]) {
 		});
 	});
 
+	auto layout_renderer = Renderer(layout, [&] {
+			return vbox({
+				layout->Render()|border
+				});
+			});
+
 	// Maps clear key event
 	console_renderer |= CatchEvent([&](Event key) {
 		if(key.is_character()){
@@ -222,6 +243,7 @@ int main(int argc, const char* argv[]) {
 				grid.map_save(); 
 			}
 			if(key == Event::Character('Q')){
+				//screen.ExitLoopClosure()();
 				// Stop UI refresh
 				refresh_ui_continue = false;	
 				std::cout << "\033[2J\033[1;1H";

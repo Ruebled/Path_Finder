@@ -117,6 +117,9 @@ void Grid::solve(int choice){
 		case 0:
 			func = &BreathFirstSearch;
 			break;
+		case 1:
+			func = &Dijkstra;
+			break;
 			//add rest of the cases
 		default:
 			func = &BreathFirstSearch;
