@@ -120,7 +120,11 @@ void Grid::solve(int choice){
 		case 1:
 			func = &Dijkstra;
 			break;
+		case 2:
+			func = &AStar;
+			break;
 			//add rest of the cases
+			//don't forget the brakes
 		default:
 			func = &BreathFirstSearch;
 			break;
@@ -193,7 +197,10 @@ void Grid::draw_map(){
 
 void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 	// Case where matrix indexes are out of bounds
-	if(Grid::width() < col || Grid::height() < row){ return; }
+	if(Grid::width() <= col || Grid::height() <= row){ 
+		this->set_state = 0;
+		return; 
+	}
 
 	// remember the current mouse position cell
 	int& cell = matrix[row][col];

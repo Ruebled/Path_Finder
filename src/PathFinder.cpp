@@ -70,13 +70,16 @@ int main(int argc, const char* argv[]) {
 			auto col_pixel = screen_to_cell_x(mouse.x);
 			auto row_pixel = screen_to_cell_y(mouse.y);
 
-			// Don't trigger mouse_event if mouse not on canvas
-			if(col_pixel>19 || row_pixel>13) return false;
-
 			// Create a string reflecting mouse position on canvas
 			char str[6];
-			sprintf(str, "%d %d", row_pixel, col_pixel);
-			coord_temp = ftxui::text(str);	
+
+			// Don't reupdate mouse position if mouse not on canvas
+			if(!(col_pixel>=grid.width() || row_pixel>=grid.height())) {
+				// Rewrite the mouse indicator
+				sprintf(str, "%d %d", row_pixel, col_pixel);
+				coord_temp = ftxui::text(str);	
+			}
+
 
 			grid.on_mouse_event(row_pixel, 
 								col_pixel, 
