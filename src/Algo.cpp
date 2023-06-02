@@ -10,19 +10,25 @@ extern bool thread_active;
 // Diagonal calc 
 bool diag_checked = false;
 
-void BreathFirstSearch(Matrix& matrix){
+void 
+BreathFirstSearch(Matrix& matrix){
 	// The code
 	point start_point = matrix.get_start_point();
 
-	// Queue to store neighbors for further processing
-	std::queue<point> neigh;
-	neigh.push(start_point);
+	// Create PriorityQueue for storing the neighbors
+	//PriorityQueue<point, double> neigh;
+	std::priority_queue<CElement, std::vector<CElement>, std::greater<CElement>> neigh;
+
+	neigh.push(CElement{start_point, 0});
 
 	// Queue to store all neighbors
 	std::deque<point> neigh_reverse;
 
 	std::map<point, point> came_from;
+	std::map<point, double> cost_so_far;
+
 	came_from[start_point] = start_point;
+	cost_so_far[start_point] = 0;
 
 	// Define in outer scope the current point that is checked
 	point current;
@@ -37,7 +43,7 @@ void BreathFirstSearch(Matrix& matrix){
 		// Start time
 		timeTracker.cpu_start();
 
-		current = neigh.front();
+		current = neigh.top().location;
 		neigh.pop();
 
 		if(matrix[current.y][current.x] == Type(end)){
@@ -74,19 +80,30 @@ void BreathFirstSearch(Matrix& matrix){
 			timeTracker.rlt_stop();
 			break;
 		}
-
 		// Get a <point> vector of current location neighbors
 		std::vector<point> near = get_neighbors(matrix, current);
 
-		for (int i = 0; i < near.size(); i++)
-		{
-			neigh.push(near[i]);
-			neigh_reverse.push_back(near[i]);
+		for (int i = 0; i < near.size(); i++) {
+			//find if near[i] cell is diagonaly placed 
+			//referring current cell
+			bool diagonal = (current.y != near[i].y && current.x != near[i].x);
+			//find the cost for the next tile(cell)
+			double new_cost = cost_so_far[current] + (diagonal?1.5:1);
+			//Division by 5 and afterwads incrementions is done
+			//to find the cost of the tiles subtracting the first 
+			//defined digits(start end empty visited path)
 
-			came_from[near[i]] = current;
+			if (cost_so_far.find(near[i]) == cost_so_far.end() 
+					|| new_cost < cost_so_far[near[i]]) {
+				cost_so_far[near[i]] = new_cost; 
+				came_from[near[i]] = current;
+				neigh.push(CElement{near[i], new_cost});
 
-			if(matrix[near[i].y][near[i].x] != Type(end)){
-				matrix[near[i].y][near[i].x] = Type(visited);
+				neigh_reverse.push_back(near[i]);
+
+				if(matrix[near[i].y][near[i].x] != Type(end)){
+					matrix[near[i].y][near[i].x] = Type(visited);
+				}
 			}
 		}
 
@@ -102,10 +119,10 @@ void BreathFirstSearch(Matrix& matrix){
 	return;
 }
 
-void Dijkstra(Matrix& matrix){
+void 
+Dijkstra(Matrix& matrix){
 	// The code
 	point start_point = matrix.get_start_point();
-	point end_point = matrix.get_end_point();
 
 	// Create PriorityQueue for storing the neighbors
 	//PriorityQueue<point, double> neigh;
@@ -212,9 +229,122 @@ void Dijkstra(Matrix& matrix){
 	return;
 }
 
+inline double heuristic(point a, point b) {
+	
+	return std::abs((int)a.x - (int)b.x) + std::abs((int)a.y - (int)b.y);
+}
+
 void 
 AStar(Matrix& matrix){
+	// The code
+	point start_point = matrix.get_start_point();
+	point end_point = matrix.get_end_point();
 
+	// Create PriorityQueue for storing the neighbors
+	//PriorityQueue<point, double> neigh;
+	std::priority_queue<CElement, std::vector<CElement>, std::greater<CElement>> neigh;
+
+	neigh.push(CElement{start_point, heuristic(start_point, end_point)});
+
+	// Queue to store all neighbors
+	std::deque<point> neigh_reverse;
+
+	std::map<point, point> came_from;
+	std::map<point, double> cost_so_far;
+
+	came_from[start_point] = start_point;
+	cost_so_far[start_point] = 0;
+
+	// Define in outer scope the current point that is checked
+	point current;
+
+	// Create TimeTracker class for time counting
+	TimeTracker timeTracker;
+
+	// Start the stopwatch for real time
+	timeTracker.rlt_start();
+
+	while(!neigh.empty()){
+		// Start time
+		timeTracker.cpu_start();
+
+		current = neigh.top().location;
+		neigh.pop();
+
+		if(matrix[current.y][current.x] == Type(end)){
+			// Reverse the found path
+			while(current != start_point){
+				current = came_from[current];	
+				if(matrix[current.y][current.x] != Type(start)){
+					matrix[current.y][current.x] = Type(path);
+				}
+				distance_path++;
+				// Path delay
+				usleep(15*1000);
+			}
+
+			// Pause the real time stopwatch
+			timeTracker.rlt_pause();
+
+			// subtrack one(stop point) from distance path
+			distance_path--;
+
+			// In case of a path clear all visited cells
+			point rev;
+			while(!neigh_reverse.empty()){
+				rev = neigh_reverse.back();
+				neigh_reverse.pop_back();
+				if(matrix[rev.y][rev.x] == Type(visited)){
+					matrix[rev.y][rev.x] = Type(empty);
+					// Remove delay
+					usleep(10*1000);
+				}
+			}
+
+			// Time real in miliseconds, till path found
+			timeTracker.rlt_stop();
+			break;
+		}
+		// Get a <point> vector of current location neighbors
+		std::vector<point> near = get_neighbors(matrix, current);
+
+		for (int i = 0; i < near.size(); i++) {
+			//find if near[i] cell is diagonaly placed 
+			//referring current cell
+			bool diagonal = (current.y != near[i].y && current.x != near[i].x);
+			//find the cost for the next tile(cell)
+			double new_cost = cost_so_far[current] + 
+					(matrix[near[i].y][near[i].x] / 5)+ 1 + (diagonal?0.5:0);
+			//Division by 5 and afterwads incrementions is done
+			//to find the cost of the tiles subtracting the first 
+			//defined digits(start end empty visited path)
+
+			if (cost_so_far.find(near[i]) == cost_so_far.end() 
+					|| new_cost < cost_so_far[near[i]]) {
+				cost_so_far[near[i]] = new_cost; 
+
+				double priority = new_cost + heuristic(near[i], end_point);
+				neigh.push(CElement{near[i], priority});
+				came_from[near[i]] = current;
+
+				neigh_reverse.push_back(near[i]);
+
+				if(matrix[near[i].y][near[i].x] != Type(end)){
+					matrix[near[i].y][near[i].x] = Type(visited);
+				}
+			}
+		}
+
+		timeTracker.cpu_pause();
+
+		// Visited delay
+		usleep(20*1000);
+	}
+
+	timeTracker.cpu_stop();
+
+	thread_active = false;
+	return;
 }
 
 
@@ -242,19 +372,13 @@ get_neighbors(Matrix& mat, point t_point){
 				) continue;
 
 			//check if it's a diagonal to be pushed back 
-			if((t_y != py && t_x != px)){
-				if(diag_checked){
-					neigh.push_back(point{(unsigned int)t_y, (unsigned int)t_x});
-				}
-				continue;
-			}
+			if((t_y != py && t_x != px) && !diag_checked) continue;
 
-			//creating begin_address to copy digonal point to
-			auto b_a = neigh.begin();
-			//neigh.push_back(point{(unsigned int)t_y, (unsigned int)t_x});
-			b_a = neigh.insert(b_a, point{(unsigned int)t_y, (unsigned int)t_x});
+			neigh.push_back(point{(unsigned int)t_y, (unsigned int)t_x});
 		}
 	}
+
+	std::random_shuffle(neigh.begin(), neigh.end());
 
 	return neigh; 
 }
