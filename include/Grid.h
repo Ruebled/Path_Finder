@@ -5,7 +5,7 @@
 #include "FileMaps.h"
 
 // Cell types enum
-enum Type {empty, start, end, wall, visited, path};
+enum Type {empty, start, end, wall, sand, woods, water, mountains, visited = 10, path = 20};
 
 class Grid {
 	private:
@@ -50,6 +50,8 @@ class Grid {
 		// FileMaps class that reads from file
 		FileMaps maps;
 
+		int drawing_tile_type = Type(wall);
+
 	public:
 		Grid();
 		Grid(unsigned int, unsigned int);
@@ -64,7 +66,9 @@ class Grid {
 		int get_index(unsigned int, unsigned int);
 		void set_value(unsigned int, unsigned int, unsigned int value);
 
+		// think of it
 		void clear(int);
+
 		void reset();
 
 		void solve(int);
@@ -74,6 +78,8 @@ class Grid {
 		void map_clear();
 
 		void on_mouse_event(int, int, bool, int);
+
+		void choose_tile(int);
 };
 
 #endif

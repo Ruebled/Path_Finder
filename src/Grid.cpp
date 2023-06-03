@@ -206,17 +206,10 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 	int& cell = matrix[row][col];
 
 	if(!mouse_pressed){
-		if(set_state == 3){
-			matrix.set_start(row, col);
-		}else if(set_state == 4){
-			matrix.set_end(row, col);
-		}
-
 		this->last_y = -1;
 		this->last_x = -1;
 
 		this->set_state = 0;
-
 	}
 
 	if(left_click && mouse_pressed){
@@ -234,14 +227,7 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 			switch(cell){
 				case Type(empty):
 					this->set_state = 1;
-					cell = Type(wall);
-					break;
-
-				case Type(wall):
-				case Type(visited):
-				case Type(path):
-					this->set_state = 2;
-					cell = Type(empty);
+					cell = Type(drawing_tile_type);
 					break;
 
 				case Type(start):
@@ -275,11 +261,13 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 					break;
 
 				default:
+					this->set_state = 2;
+					cell = Type(empty);
 					break;
 			}
 
 		}else if(set_state == 1){
-			// State if border is being set
+			// State if cells(types) is being set(wall, water, sand)
 			switch(cell){
 				case Type(visited):
 				case Type(path):
@@ -288,7 +276,7 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 						break;
 					}
 					this->set_state = 1;
-					cell = Type(wall);
+					cell = Type(drawing_tile_type);
 					break;
 				default:
 					break;
@@ -297,23 +285,20 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 		}else if(set_state == 2){
 			// State if empty cell is being set
 			switch(cell){
-				case Type(empty):
-				case Type(wall):
-				case Type(visited):
-				case Type(path):
-					cell = Type(empty);
+				case Type(start):
+				case Type(end):
 					break;
 				default:
+					cell = Type(empty);
 					break;
 			}
 
 		}else if(set_state == 3){
 			// State if start point is being set
 			switch(cell){
-				case Type(empty):
-				case Type(wall):
-				case Type(visited):
-				case Type(path):
+				case Type(end):
+					break;
+				default:
 					matrix[this->last_row][this->last_col] = this->last_cell_state;
 
 					// Save the state of current cell
@@ -322,17 +307,15 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 					this->last_cell_state = cell;
 
 					cell = Type(start);
-					break;
-				default:
+					matrix.set_start(row, col);
 					break;
 			}
 		}else if(set_state == 4){
 			// State if end point is being set
 			switch(cell){
-				case Type(empty):
-				case Type(wall):
-				case Type(visited):
-				case Type(path):
+				case Type(start):
+					break;
+				default:
 					matrix[this->last_row][this->last_col] = this->last_cell_state;
 
 					this->last_row = row;
@@ -340,13 +323,17 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 					this->last_cell_state = cell;
 
 					cell = Type(end);
-					break;
-				default:
+					matrix.set_end(row, col);
 					break;
 			}
 
 		}
 	}
 	this->cell_pos_changed = false;
+	return;
+}
+
+void Grid::choose_tile(int index){
+	this->drawing_tile_type = index;
 	return;
 }

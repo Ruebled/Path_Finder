@@ -3,13 +3,20 @@
 // Cell color enum
 ftxui::Color Color_cell[] = { 
 							  ftxui::Color::Black,
-							  ftxui::Color::Red,
-							  ftxui::Color::Green,
-							  ftxui::Color::Blue,
+							  ftxui::Color::Cyan,
+							  ftxui::Color::Yellow,
 							  ftxui::Color::GrayDark,
-							  ftxui::Color::YellowLight
+							  ftxui::Color::SandyBrown,
+							  ftxui::Color::DarkGreen,
+							  ftxui::Color::DarkBlue,
+							  ftxui::Color::DarkOrange3,
+							  ftxui::Color::GrayLight,
+							  ftxui::Color::Orange1,
 							};
 
+ftxui::Color visit_color = ftxui::Color::GrayLight;
+ftxui::Color path_color = ftxui::Color::Orange1;
+							  							  
 ftxui::Canvas matrix_to_canvas(Grid grid, ftxui::Screen& screen){
     int rows = grid.height();
 	int cols = grid.width();
@@ -55,7 +62,21 @@ ftxui::Canvas matrix_to_canvas(Grid grid, ftxui::Screen& screen){
 		for ( int c = 0; c < cols; c++){
 			int color_ind = grid.get_index(r, c);
 
-			ftxui::Color cell_color = Color_cell[color_ind];
+			ftxui::Color cell_color;
+
+			if(color_ind < Type(visited)){
+				cell_color = Color_cell[color_ind];
+
+			}
+
+			if(color_ind >= Type(visited)){
+				cell_color = visit_color;
+			}
+
+			if(color_ind >= Type(path)){
+				cell_color = path_color;
+			}
+
 
 			if(color_ind == 0){
 				continue;
@@ -73,3 +94,4 @@ ftxui::Canvas matrix_to_canvas(Grid grid, ftxui::Screen& screen){
 
 	return canvas;
 }
+

@@ -1,6 +1,5 @@
 #include "Algo.h"
 
-
 // distance of the path
 int distance_path = 0;
 
@@ -10,8 +9,12 @@ extern bool thread_active;
 // Diagonal calc 
 bool diag_checked = false;
 
+
 void 
 BreathFirstSearch(Matrix& matrix){
+	// State of the found path
+	bool path_found = false;
+
 	// The code
 	point start_point = matrix.get_start_point();
 
@@ -47,37 +50,7 @@ BreathFirstSearch(Matrix& matrix){
 		neigh.pop();
 
 		if(matrix[current.y][current.x] == Type(end)){
-			// Reverse the found path
-			while(current != start_point){
-				current = came_from[current];	
-				if(matrix[current.y][current.x] != Type(start)){
-					matrix[current.y][current.x] = Type(path);
-				}
-				distance_path++;
-				// Path delay
-				usleep(15*1000);
-			}
-
-			// Pause the real time stopwatch
-			timeTracker.rlt_pause();
-
-			// subtrack one(stop point) from distance path
-			distance_path--;
-
-			// In case of a path clear all visited cells
-			point rev;
-			while(!neigh_reverse.empty()){
-				rev = neigh_reverse.back();
-				neigh_reverse.pop_back();
-				if(matrix[rev.y][rev.x] == Type(visited)){
-					matrix[rev.y][rev.x] = Type(empty);
-					// Remove delay
-					usleep(10*1000);
-				}
-			}
-
-			// Time real in miliseconds, till path found
-			timeTracker.rlt_stop();
+			path_found = true;
 			break;
 		}
 		// Get a <point> vector of current location neighbors
@@ -88,10 +61,7 @@ BreathFirstSearch(Matrix& matrix){
 			//referring current cell
 			bool diagonal = (current.y != near[i].y && current.x != near[i].x);
 			//find the cost for the next tile(cell)
-			double new_cost = cost_so_far[current] + (diagonal?1.5:1);
-			//Division by 5 and afterwads incrementions is done
-			//to find the cost of the tiles subtracting the first 
-			//defined digits(start end empty visited path)
+			double new_cost = cost_so_far[current] + (diagonal?1.4:1);
 
 			if (cost_so_far.find(near[i]) == cost_so_far.end() 
 					|| new_cost < cost_so_far[near[i]]) {
@@ -115,12 +85,72 @@ BreathFirstSearch(Matrix& matrix){
 
 	timeTracker.cpu_stop();
 
+	// After algorithm processing
+
+	// Reverse the found path
+	if(path_found){
+		while(current != start_point){
+			current = came_from[current];	
+			if(matrix[current.y][current.x] != Type(start)){
+				matrix[current.y][current.x] = Type(path);
+			}
+			distance_path++;
+			// Path delay
+			usleep(15*1000);
+		}
+		// subtrack one(stop point) from distance path
+		distance_path--;
+	}
+
+	// Clear all visited cells
+	point rev;
+	while(!neigh_reverse.empty()){
+		rev = neigh_reverse.back();
+		neigh_reverse.pop_back();
+		if(matrix[rev.y][rev.x] == Type(visited)){
+			matrix[rev.y][rev.x] = Type(empty);
+			// Remove delay
+			usleep(10*1000);
+		}
+	}
+
+	// Pause the real time stopwatch
+	timeTracker.rlt_pause();
+
+	// Time real in miliseconds, till path found
+	timeTracker.rlt_stop();
+
 	thread_active = false;
 	return;
 }
 
+int get_cell_priority(int value){
+	int priority = 1;
+	switch(value){
+		case Type(empty):
+			priority = 1;
+			break;
+		case Type(sand):
+			priority = 2;
+			break;
+		case Type(woods):
+			priority = 3;
+			break;
+		case Type(water):
+			priority = 4;
+			break;
+		case Type(mountains):
+			priority = 5;
+			break;
+	}
+	return priority;
+}
+
 void 
 Dijkstra(Matrix& matrix){
+	// State of the found path
+	bool path_found = false;
+
 	// The code
 	point start_point = matrix.get_start_point();
 
@@ -156,64 +186,38 @@ Dijkstra(Matrix& matrix){
 		neigh.pop();
 
 		if(matrix[current.y][current.x] == Type(end)){
-			// Reverse the found path
-			while(current != start_point){
-				current = came_from[current];	
-				if(matrix[current.y][current.x] != Type(start)){
-					matrix[current.y][current.x] = Type(path);
-				}
-				distance_path++;
-				// Path delay
-				usleep(15*1000);
-			}
-
-			// Pause the real time stopwatch
-			timeTracker.rlt_pause();
-
-			// subtrack one(stop point) from distance path
-			distance_path--;
-
-			// In case of a path clear all visited cells
-			point rev;
-			while(!neigh_reverse.empty()){
-				rev = neigh_reverse.back();
-				neigh_reverse.pop_back();
-				if(matrix[rev.y][rev.x] == Type(visited)){
-					matrix[rev.y][rev.x] = Type(empty);
-					// Remove delay
-					usleep(10*1000);
-				}
-			}
-
-			// Time real in miliseconds, till path found
-			timeTracker.rlt_stop();
+			path_found = true;
 			break;
 		}
 		// Get a <point> vector of current location neighbors
 		std::vector<point> near = get_neighbors(matrix, current);
-
 		for (int i = 0; i < near.size(); i++) {
 			//find if near[i] cell is diagonaly placed 
 			//referring current cell
 			bool diagonal = (current.y != near[i].y && current.x != near[i].x);
 			//find the cost for the next tile(cell)
 			double new_cost = cost_so_far[current] + 
-					(matrix[near[i].y][near[i].x] / 5)+ 1 + (diagonal?0.5:0);
-			//Division by 5 and afterwads incrementions is done
+					(get_cell_priority(matrix[near[i].y][near[i].x])) + (diagonal?0.4:0);
+
+			//Division by 4 and afterwads incrementions is done
 			//to find the cost of the tiles subtracting the first 
 			//defined digits(start end empty visited path)
 
 			if (cost_so_far.find(near[i]) == cost_so_far.end() 
 					|| new_cost < cost_so_far[near[i]]) {
+
+				if(cost_so_far.find(near[i]) == cost_so_far.end()){
+					if(matrix[near[i].y][near[i].x] != Type(end)){
+						matrix[near[i].y][near[i].x] = Type(visited) + matrix[near[i].y][near[i].x];
+
+					}
+				}
 				cost_so_far[near[i]] = new_cost; 
 				came_from[near[i]] = current;
 				neigh.push(CElement{near[i], new_cost});
 
 				neigh_reverse.push_back(near[i]);
 
-				if(matrix[near[i].y][near[i].x] != Type(end)){
-					matrix[near[i].y][near[i].x] = Type(visited);
-				}
 			}
 		}
 
@@ -225,17 +229,54 @@ Dijkstra(Matrix& matrix){
 
 	timeTracker.cpu_stop();
 
+	// After algorithm processing
+
+	// Reverse the found path
+	if(path_found){
+		while(current != start_point){
+			current = came_from[current];	
+			if(matrix[current.y][current.x] != Type(start)){
+				matrix[current.y][current.x] = matrix[current.y][current.x] - Type(visited) + Type(path);
+			}
+			distance_path++;
+			// Path delay
+			usleep(15*1000);
+		}
+		// subtrack one(stop point) from distance path
+		distance_path--;
+	}
+
+	// Clear all visited cells
+	point rev;
+	while(!neigh_reverse.empty()){
+		rev = neigh_reverse.back();
+		neigh_reverse.pop_back();
+		if(matrix[rev.y][rev.x] >= Type(visited) && matrix[rev.y][rev.x] < Type(path)){
+			matrix[rev.y][rev.x] = matrix[rev.y][rev.x] - Type(visited);
+			// Remove delay
+			usleep(10*1000);
+		}
+	}
+
+	// Pause the real time stopwatch
+	timeTracker.rlt_pause();
+
+	// Time real in miliseconds, till path found
+	timeTracker.rlt_stop();
+
 	thread_active = false;
 	return;
 }
 
 inline double heuristic(point a, point b) {
-	
 	return std::abs((int)a.x - (int)b.x) + std::abs((int)a.y - (int)b.y);
 }
 
 void 
 AStar(Matrix& matrix){
+	// State of the found path
+	bool path_found = false;
+
 	// The code
 	point start_point = matrix.get_start_point();
 	point end_point = matrix.get_end_point();
@@ -272,39 +313,10 @@ AStar(Matrix& matrix){
 		neigh.pop();
 
 		if(matrix[current.y][current.x] == Type(end)){
-			// Reverse the found path
-			while(current != start_point){
-				current = came_from[current];	
-				if(matrix[current.y][current.x] != Type(start)){
-					matrix[current.y][current.x] = Type(path);
-				}
-				distance_path++;
-				// Path delay
-				usleep(15*1000);
-			}
-
-			// Pause the real time stopwatch
-			timeTracker.rlt_pause();
-
-			// subtrack one(stop point) from distance path
-			distance_path--;
-
-			// In case of a path clear all visited cells
-			point rev;
-			while(!neigh_reverse.empty()){
-				rev = neigh_reverse.back();
-				neigh_reverse.pop_back();
-				if(matrix[rev.y][rev.x] == Type(visited)){
-					matrix[rev.y][rev.x] = Type(empty);
-					// Remove delay
-					usleep(10*1000);
-				}
-			}
-
-			// Time real in miliseconds, till path found
-			timeTracker.rlt_stop();
+			path_found = true;
 			break;
 		}
+
 		// Get a <point> vector of current location neighbors
 		std::vector<point> near = get_neighbors(matrix, current);
 
@@ -314,8 +326,8 @@ AStar(Matrix& matrix){
 			bool diagonal = (current.y != near[i].y && current.x != near[i].x);
 			//find the cost for the next tile(cell)
 			double new_cost = cost_so_far[current] + 
-					(matrix[near[i].y][near[i].x] / 5)+ 1 + (diagonal?0.5:0);
-			//Division by 5 and afterwads incrementions is done
+					(matrix[near[i].y][near[i].x] / 3)+ 1 + (diagonal?0.4:0);
+			//Division by 4 and afterwads incrementions is done
 			//to find the cost of the tiles subtracting the first 
 			//defined digits(start end empty visited path)
 
@@ -342,6 +354,41 @@ AStar(Matrix& matrix){
 	}
 
 	timeTracker.cpu_stop();
+
+	// After algorithm processing
+
+	// Reverse the found path
+	if(path_found){
+		while(current != start_point){
+			current = came_from[current];	
+			if(matrix[current.y][current.x] != Type(start)){
+				matrix[current.y][current.x] = matrix[current.y][current.x] - Type(visited) + Type(path);
+			}
+			distance_path++;
+			// Path delay
+			usleep(15*1000);
+		}
+		// subtrack one(stop point) from distance path
+		distance_path--;
+	}
+
+	// Clear all visited cells
+	point rev;
+	while(!neigh_reverse.empty()){
+		rev = neigh_reverse.back();
+		neigh_reverse.pop_back();
+		if(matrix[rev.y][rev.x] >= Type(visited) && matrix[rev.y][rev.x] < Type(path)){
+			matrix[rev.y][rev.x] = matrix[rev.y][rev.x] - Type(visited);
+			// Remove delay
+			usleep(10*1000);
+		}
+	}
+
+	// Pause the real time stopwatch
+	timeTracker.rlt_pause();
+
+	// Time real in miliseconds, till path found
+	timeTracker.rlt_stop();
 
 	thread_active = false;
 	return;
