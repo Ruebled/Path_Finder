@@ -9,18 +9,18 @@ struct point{
 	unsigned int y;
 	unsigned int x;
 
-	friend bool operator<(const point& l, const point& r)
-    {
+	friend bool operator<(const point& l, const point& r) {
         return std::tie(l.y, l.x) < std::tie(r.y, r.x);
     }
+	friend bool operator>(const point& l, const point& r) {
+        return std::tie(l.y, l.x) > std::tie(r.y, r.x);
+    }
 
-    friend bool operator==(const point& l, const point& r)
-    {
+    friend bool operator==(const point& l, const point& r) {
         return std::tie(l.y, l.x) == std::tie(r.y, r.x);
     }
 
-    friend bool operator!=(const point& l, const point& r)
-    {
+    friend bool operator!=(const point& l, const point& r) {
         return std::tie(l.y, l.x) != std::tie(r.y, r.x);
     }
 };

@@ -1,4 +1,5 @@
 #include "screen.h"
+
 // Global variables
 // CPU time benchmark 
 extern float cpu_time;
@@ -20,6 +21,9 @@ std::atomic<bool> refresh_ui_continue;
 
 // Variable for storing if diagonals will be used
 extern bool diag_checked;
+
+// Colors for different tiles
+extern ftxui::Color Color_cell[];
 
 // main function of the application
 int main(int argc, const char* argv[]) {
@@ -61,6 +65,7 @@ int main(int argc, const char* argv[]) {
 		return rows_div;	
 	});
 
+	// ftxui variable to store pointer current coordinate
 	auto coord_temp = ftxui::text("");
 
 	auto grid_with_mouse = CatchEvent(grid_renderer, [&](Event e) {
@@ -70,13 +75,16 @@ int main(int argc, const char* argv[]) {
 			auto col_pixel = screen_to_cell_x(mouse.x);
 			auto row_pixel = screen_to_cell_y(mouse.y);
 
-			// Don't trigger mouse_event if mouse not on canvas
-			if(col_pixel>19 || row_pixel>13) return false;
-
 			// Create a string reflecting mouse position on canvas
 			char str[6];
-			sprintf(str, "%d %d", row_pixel, col_pixel);
-			coord_temp = ftxui::text(str);	
+
+			// Don't reupdate mouse position if mouse not on canvas
+			if(!(col_pixel>=grid.width() || row_pixel>=grid.height())) {
+				// Rewrite the mouse indicator
+				sprintf(str, "%d %d", row_pixel+1, col_pixel+1);
+				coord_temp = ftxui::text(str);	
+			}
+
 
 			grid.on_mouse_event(row_pixel, 
 								col_pixel, 
@@ -94,7 +102,6 @@ int main(int argc, const char* argv[]) {
 	// The list for algorithms
 	std::vector<std::string> algorithms_name = {
 		"Breadth First Search",
-		"Depth First Search",
 		"Djikstra",
 		"A Star"
 	};
@@ -102,8 +109,8 @@ int main(int argc, const char* argv[]) {
 	// Define checkbox for chosing diagonal finding
 	std::string diag_str = "Allow diagonal";
 
-	auto menu = Container::Vertical({ Radiobox(&algorithms_name, &selected),
-									  Checkbox(&diag_str, &diag_checked)});
+	auto algo_select_menu = Container::Vertical({ Radiobox(&algorithms_name, &selected)});
+	auto diagonal_check = Container::Vertical({ Checkbox(&diag_str, &diag_checked)});
 
 	// Define the buttons and their functions
 	auto button_style = ButtonOption::Animated(Color::Default, Color::GrayDark,
@@ -120,7 +127,10 @@ int main(int argc, const char* argv[]) {
 							  )|bold;
 
 	auto clear_button = Button("Clear", 
-							   [&] { if(!thread_active){ grid.clear(); } }, 
+							   [&] { if(!thread_active){ 
+								   grid.clear(Type(path)); 
+								   grid.clear(Type(wall));
+							   } }, 
 							   &button_style
 							  )|bold;
 
@@ -139,16 +149,6 @@ int main(int argc, const char* argv[]) {
 			return text(real_time_string_trunc);
 	};
 	
-	// Instructions for using the game
-	Element instructions_en = vbox({
-		paragraph("This Project is visual implementation of some of the most known path finding algorithms."),
-		paragraph("Starting(red) and ending(green) point can be seen when opening the app."),
-		paragraph("Those can be drag and droped to change their position."),
-		paragraph("    Clicking and drawing on the empty cell will draw a wall(blue), that is working as a barrier for the path to be found."),
-		paragraph("    The algorithm used for path finding can be chosen from bellow by selecting the apropriate radiobutton."),
-		paragraph("    After pressing START, the path will be shown in YELLOW. And 'checked' cell in DARK-GRAY.")
-	});
-
 	auto buttons = Container::Horizontal({
 			start_button,
 		   	reset_button,
@@ -156,38 +156,52 @@ int main(int argc, const char* argv[]) {
 			map_button
 			});
 
-	auto components = ftxui::Container::Horizontal({grid_with_mouse,  buttons, menu});
+	auto components = ftxui::Container::Horizontal({grid_with_mouse,  buttons, algo_select_menu, diagonal_check});
 
-	auto console_renderer = Renderer(components, [&] {
+	// Instructions for main window
+	ftxui::Element instructions_en = ftxui::vbox({
+			ftxui::paragraph("This Project is visual implementation of some of the most known path finding algorithms."),
+			ftxui::separatorEmpty(),
+			ftxui::paragraph("====Press H for more====")|ftxui::center,
+	});
+	
+	auto main_screen_renderer = Renderer(components, [&] {
 		return hbox({ 
 			grid_with_mouse->Render() | border,
+
 			flex_grow(vbox({
+				separatorEmpty(),
 				hbox({ text("Welcome to Path Finder") })|center|bold,
 				hbox({
 						text("Coord: [Y] [X]: "), 
 						coord_temp
 					 })|center,
+				separatorEmpty(),
 				separator(),
+				filler(),
 				vbox({
-						text("Quick Introduction")|center,
+						text("Quick Introduction") | bold | center,
+						separatorEmpty(),
 						instructions_en|borderEmpty|center
 						}),
+				filler(),
 				separator(),
 				text("PathFinding Algorithms")|center|bold,
 				separatorEmpty(),
-				hbox({
+
+				vbox({
+					algo_select_menu->Render(),
 					separatorEmpty(),
-					separatorEmpty(),
-					menu->Render()
-					}),
-				filler(),
+					diagonal_check->Render()
+					}) | borderEmpty,
 				separator(),
+
 				vbox({
 						text("Performance") | center,
 						hbox({
-								text("CPU time: "),
-								toShorterFloat(cpu_time, 7),
-								text(" ms")
+							text("CPU time: "),
+							toShorterFloat(cpu_time, 7),
+							text(" ms")
 						})|center,
 						hbox({
 							text("Real time: "),
@@ -201,20 +215,114 @@ int main(int argc, const char* argv[]) {
 					}),
 				separator(),
 				hbox({ buttons->Render()}) | center | focus
+
 			})|border)
 		});
 	});
 
+	int depth = 2;
+
+	// Tiles types selecting modal
+	// depth 1
+	std::vector<std::string> types_of_tiles = {
+		"    Wall     ",
+		"    Sand     ",
+		"    Woods    ",
+		"    Water    ",
+		"  Mountains  ",
+	};
+
+	auto button_tile_style_wall = ButtonOption::Animated(Color_cell[Type(wall)], Color::Black, Color::Default, Color_cell[Type(wall)]);
+	auto button_tile_style_sand = ButtonOption::Animated(Color_cell[Type(sand)], Color::Black, Color::Default, Color_cell[Type(sand)]);
+	auto button_tile_style_woods = ButtonOption::Animated(Color_cell[Type(woods)], Color::Black, Color::Default, Color_cell[Type(woods)]);
+	auto button_tile_style_water = ButtonOption::Animated(Color_cell[Type(water)], Color::Black, Color::Default, Color_cell[Type(water)]);
+	auto button_tile_style_mountains = ButtonOption::Animated(Color_cell[Type(mountains)], Color::Black, Color::Default, Color_cell[Type(mountains)]);
+
+	auto tiles_selector_container = Container::Vertical({
+		Button(&types_of_tiles[0], [&] { grid.choose_tile(Type(wall)); depth = 0; }, &button_tile_style_wall)|center,
+		Button(&types_of_tiles[1], [&] { grid.choose_tile(Type(sand)); depth = 0; }, &button_tile_style_sand)|center,
+		Button(&types_of_tiles[2], [&] { grid.choose_tile(Type(woods)); depth = 0; }, &button_tile_style_woods)|center,
+		Button(&types_of_tiles[3], [&] { grid.choose_tile(Type(water)); depth = 0; }, &button_tile_style_water)|center,
+		Button(&types_of_tiles[4], [&] { grid.choose_tile(Type(mountains)); depth = 0; }, &button_tile_style_mountains)|center,
+	});
+
+	auto tiles_selector_modal_renderer = Renderer(tiles_selector_container, [&] {
+		return vbox({
+				text("Select the tile"),
+				separator(),
+				vbox(tiles_selector_container->Render()),
+			}) | border;
+	});
+
+	// Help(instruction) window
+	std::string help_text = "Help menu";
+
+	auto help_window_renderer = Renderer( [&] {
+		return vbox({
+				text("The HELP!") | center | bold,
+				separator(),
+				paragraph(help_text) | center,	
+			}) | border;
+	});
+
+
+	// Main renderer section
+	auto main_container = Container::Tab({
+		main_screen_renderer,
+		tiles_selector_modal_renderer,
+		help_window_renderer,
+	}, &depth);
+
+	auto main_renderer = Renderer(main_container, [&] {
+		Element document = main_screen_renderer->Render();
+		if (depth == 1){
+			document = dbox({
+				document,
+				tiles_selector_modal_renderer->Render() | clear_under | center,
+			});
+		}
+		if (depth == 2){
+			document = dbox({
+				document,
+				help_window_renderer->Render() | clear_under | size(HEIGHT, EQUAL, 20) | size(WIDTH, EQUAL, 50) | center ,
+			});
+		}
+		return document;
+	});
+
+
 	// Maps clear key event
-	console_renderer |= CatchEvent([&](Event key) {
-		if(key.is_character()){
-			if(key == Event::Character('R')){
+	main_renderer |= CatchEvent([&](Event e) {
+		// Trigger action to open select type of menu option
+		if(e.is_mouse()){
+			if(e.mouse().button == Mouse::Right) { depth = 1; }
+		}
+
+		// On escape close all aditional windows
+		if(e == Event::Escape){
+			depth = 0;
+		}
+
+		if(e.is_character()){
+			//Trigger for opening help modal window
+			if(e == Event::Character('H')){
+				depth = 2;
+			}
+
+			// Trigger for deleting all saved maps
+			if(e == Event::Character('R')){
 				grid.map_clear(); 
 			}
-			if(key == Event::Character('S')){
+
+			// Trigger for saving current drawn maps in a file
+			if(e == Event::Character('S')){
 				grid.map_save(); 
 			}
-			if(key == Event::Character('Q')){
+
+			// Trigger for quiting application in a clean way
+			if(e == Event::Character('Q')){
+				// closing the application it's own way
+				//screen.ExitLoopClosure()();
 				// Stop UI refresh
 				refresh_ui_continue = false;	
 				std::cout << "\033[2J\033[1;1H";
@@ -235,7 +343,7 @@ int main(int argc, const char* argv[]) {
 		}
 	});
 
-	screen.Loop(console_renderer);
+	screen.Loop(main_renderer);
 	refresh_ui_continue = false;
 	refresh_ui.join();
  
