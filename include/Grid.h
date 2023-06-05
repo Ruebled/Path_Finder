@@ -66,8 +66,8 @@ class Grid {
 		int get_index(unsigned int, unsigned int);
 		void set_value(unsigned int, unsigned int, unsigned int value);
 
-		// think of it
-		void clear(int);
+		void clear_path();
+		void clear_all();
 
 		void reset();
 

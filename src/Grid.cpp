@@ -51,18 +51,14 @@ void Grid::set_value(unsigned int y, unsigned int x, unsigned int value){
 	return;
 }
 
-void Grid::clear(int type){
+void Grid::clear_path(){
 	// Clear cells to Type.empty
 	for(int row = 0; row < matrix.height(); row++){
 		for(int col = 0; col < matrix.width(); col++){
 			// Leave start and end point at their positions
-			if(matrix[row][col] == Type(start) 
-				|| matrix[row][col] == Type(end) ){
-				continue;
-			}
 
-			if(matrix[row][col] == Type(type)){
-				matrix[row][col] = Type(empty);
+			if(matrix[row][col] >= Type(path)){
+				matrix[row][col] = matrix[row][col] - Type(path);
 			}
 		}
 	}
@@ -73,6 +69,28 @@ void Grid::clear(int type){
 
 	return;
 }
+
+void Grid::clear_all(){
+	// Clear cells to Type.empty
+	for(int row = 0; row < matrix.height(); row++){
+		for(int col = 0; col < matrix.width(); col++){
+			// Leave start and end point at their positions
+			if(matrix[row][col] == Type(start) 
+				|| matrix[row][col] == Type(end) ){
+				continue;
+			}
+
+			matrix[row][col] = Type(empty);
+		}
+	}
+	// Null benchmark value
+	cpu_time = 0;
+	real_time = 0;
+	distance_path = 0;
+
+	return;
+}
+
 
 void Grid::reset(){
 	// Clear/Set cells to Type.empty
@@ -101,14 +119,7 @@ void Grid::solve(int choice){
 	real_time = 0;
 	distance_path = 0;
 
-	for(int row = 0; row < matrix.height(); row++){
-		for(int col = 0; col < matrix.width(); col++){
-			if(matrix[row][col] == Type(visited) ||
-					matrix[row][col] == Type(path)){
-				matrix[row][col] = Type(empty);
-			}
-		}
-	}
+	Grid::clear_path();
 
 	// Variable to store the function
 	std::function<void(Matrix&)> func;
@@ -241,7 +252,7 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 					this->last_cell_state = Type(empty); 
 
 					// Clear the path if any
-					Grid::clear(Type(path));
+					Grid::clear_path();
 
 					break;
 
@@ -256,7 +267,7 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 					this->last_cell_state = Type(empty); 
 
 					// Clear the path if any
-					Grid::clear(Type(path));
+					Grid::clear_path();
 
 					break;
 

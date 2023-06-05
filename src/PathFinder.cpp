@@ -112,6 +112,8 @@ int main(int argc, const char* argv[]) {
 	auto algo_select_menu = Container::Vertical({ Radiobox(&algorithms_name, &selected)});
 	auto diagonal_check = Container::Vertical({ Checkbox(&diag_str, &diag_checked)});
 
+	int depth = 2;
+
 	// Define the buttons and their functions
 	auto button_style = ButtonOption::Animated(Color::Default, Color::GrayDark,
                                              Color::Default, Color::White);
@@ -128,8 +130,7 @@ int main(int argc, const char* argv[]) {
 
 	auto clear_button = Button("Clear", 
 							   [&] { if(!thread_active){ 
-								   grid.clear(Type(path)); 
-								   grid.clear(Type(wall));
+							       depth = 3;
 							   } }, 
 							   &button_style
 							  )|bold;
@@ -160,7 +161,7 @@ int main(int argc, const char* argv[]) {
 
 	// Instructions for main window
 	ftxui::Element instructions_en = ftxui::vbox({
-			ftxui::paragraph("This Project is visual implementation of some of the most known path finding algorithms."),
+			ftxui::paragraph("This Project is visual implementation of some of the most known path finding algorithms.") | ftxui::center,
 			ftxui::separatorEmpty(),
 			ftxui::paragraph("====Press H for more====")|ftxui::center,
 	});
@@ -220,8 +221,6 @@ int main(int argc, const char* argv[]) {
 		});
 	});
 
-	int depth = 2;
-
 	// Tiles types selecting modal
 	// depth 1
 	std::vector<std::string> types_of_tiles = {
@@ -232,6 +231,7 @@ int main(int argc, const char* argv[]) {
 		"  Mountains  ",
 	};
 
+	// Think of this
 	auto button_tile_style_wall = ButtonOption::Animated(Color_cell[Type(wall)], Color::Black, Color::Default, Color_cell[Type(wall)]);
 	auto button_tile_style_sand = ButtonOption::Animated(Color_cell[Type(sand)], Color::Black, Color::Default, Color_cell[Type(sand)]);
 	auto button_tile_style_woods = ButtonOption::Animated(Color_cell[Type(woods)], Color::Black, Color::Default, Color_cell[Type(woods)]);
@@ -255,14 +255,90 @@ int main(int argc, const char* argv[]) {
 	});
 
 	// Help(instruction) window
-	std::string help_text = "Help menu";
+	std::vector<std::string> help_text = {
+		"This app implement some popular pathfinding algorithms in an interactive way.",
+
+		"Drawing the map",
+		"Using *rigth click* an window with clickable elements(types of tiles for choosing) will appear at the center of the screen",
+		"The drawing is also done using the mouse",
+		"To move the *start* or *end* points tiles, click, move and drop can be used",
+
+		"Algorithms menu",
+		"From the radio buttons list an algorithm for testing can be choosen",
+
+		"Buttons",
+		"Start - is used to start the path finding algorithm choosen",
+		"Reset - is for reseting initial state of the board",
+		"Clear - when clicked an window with:",
+		"		 *Clear path* - clears the path remained after the pathfinding",
+		"		 *Clear all* - clears all the tiles but the *start* and *end* points",
+	   	"Map - is used to retrieve the maps saved before",
+
+		"Path finding process",
+		"After presssing the *Start* button, with a defined delay, the tiles checked by the algorithm will be colored in _gray_.",
+		"When the path is found the algorithms stop checking any other tiles, and start to draw backwards the path found, then reverse visited tiles the way checked",
+		"Then *real time* and the *CPU time* that the algorithm spent is displayed above the buttons.",
+
+		"Shortcuts",
+		" 'S' - saves the current drawn map;",
+		" 'R' - clears the maps saved;", 
+		" 'Q' - exits the app;",
+		" '<ESC>' - exits aditional windows appeared;",
+	};
+	
 
 	auto help_window_renderer = Renderer( [&] {
 		return vbox({
 				text("The HELP!") | center | bold,
 				separator(),
-				paragraph(help_text) | center,	
+				paragraph(help_text[0]), 
+				separatorEmpty(),
+				paragraph(help_text[1]) | bold,
+				paragraph(help_text[2]), 	
+				paragraph(help_text[3]), 	
+				paragraph(help_text[4]), 	
+				separatorEmpty(),
+				paragraph(help_text[5]) | bold,	
+				paragraph(help_text[6]), 	
+				separatorEmpty(),
+				paragraph(help_text[7]) | bold, 	
+				paragraph(help_text[8]), 	
+				paragraph(help_text[9]), 	
+				paragraph(help_text[10]),	
+				paragraph(help_text[11]),	
+				paragraph(help_text[12]),	
+				paragraph(help_text[13]),	
+				separatorEmpty(),
+				paragraph(help_text[14]) | bold,	
+				paragraph(help_text[15]),	
+				paragraph(help_text[16]),	
+				paragraph(help_text[17]),	
+				separatorEmpty(),
+				paragraph(help_text[18]) | bold,	
+				paragraph(help_text[19]),	
+				paragraph(help_text[20]),	
+				paragraph(help_text[21]),	
 			}) | border;
+	});
+
+	// Clear window
+	std::vector<std::string> clear_button_text = {
+		"  Path ",
+		"  All ",
+	};
+
+	auto clear_button_style = ButtonOption::Animated(Color::Default, Color::GrayDark,
+                                             Color::Default, Color::White);
+
+	auto clear_window_container = Container::Vertical({
+		Button(&clear_button_text[0], [&] { grid.clear_path(); depth = 0; }, &button_tile_style_wall) | center,
+		Button(&clear_button_text[1], [&] { grid.clear_all(); depth = 0; }, &clear_button_style) | center,
+	});
+
+	auto clear_window_renderer = Renderer( clear_window_container, [&] {
+		return vbox({
+				vbox(clear_window_container->Render()),
+		})|border;
 	});
 
 
@@ -271,6 +347,7 @@ int main(int argc, const char* argv[]) {
 		main_screen_renderer,
 		tiles_selector_modal_renderer,
 		help_window_renderer,
+		clear_window_renderer,
 	}, &depth);
 
 	auto main_renderer = Renderer(main_container, [&] {
@@ -281,12 +358,29 @@ int main(int argc, const char* argv[]) {
 				tiles_selector_modal_renderer->Render() | clear_under | center,
 			});
 		}
+
 		if (depth == 2){
 			document = dbox({
 				document,
-				help_window_renderer->Render() | clear_under | size(HEIGHT, EQUAL, 20) | size(WIDTH, EQUAL, 50) | center ,
+				help_window_renderer->Render() | clear_under | size(HEIGHT, EQUAL, 40) | size(WIDTH, EQUAL, 70) | center ,
 			});
 		}
+		
+		if (depth == 3){
+			document = dbox({
+				document,
+				hbox({
+					dbox({text("")}) | size(WIDTH, EQUAL, 172),
+					vbox({
+						dbox({text("")}) | size(HEIGHT, EQUAL, 33),
+						vbox({
+							clear_window_renderer->Render() | clear_under | center,
+							}),
+						}),
+					}),
+				});
+		}
+
 		return document;
 	});
 
