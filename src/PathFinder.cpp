@@ -413,6 +413,52 @@ int main(int argc, const char* argv[]) {
 				grid.map_save(); 
 			}
 
+			// Trigger for choosing 1'st algorithm
+			if(e == Event::Character('1')){
+				selected = 0;
+			}
+			
+			// Trigger for choosing 2'nd algorithm
+			if(e == Event::Character('2')){
+				selected = 1;
+			}
+
+			// Trigger for choosing 3'rd algorithm
+			if(e == Event::Character('3')){
+				selected = 2;
+			}
+
+			if(e == Event::Character('d')){
+				diag_checked = diag_checked ^ 1;
+			}
+
+			// Trigger for button START
+			if(e == Event::Character('s')){
+				grid.solve(selected); 
+			}
+			
+			// Trigger for button RESET
+			if(e == Event::Character('r')){
+				grid.reset(); 
+			}
+
+			// Trigger for button CLEAR
+			if(e == Event::Character('c')){
+				depth = 3;
+			}
+
+			if(e == Event::Character('a')){
+				grid.clear_all();
+			}
+
+			if(e == Event::Character('p')){
+				grid.clear_path();
+			}
+
+			if(e == Event::Character('m')){
+				grid.draw_map();
+			}
+
 			// Trigger for quiting application in a clean way
 			if(e == Event::Character('Q')){
 				// closing the application it's own way
