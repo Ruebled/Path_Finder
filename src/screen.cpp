@@ -2,19 +2,26 @@
 
 // Cell color enum
 ftxui::Color Color_cell[] = { 
-							  ftxui::Color::Black,
-							  ftxui::Color::Cyan,
-							  ftxui::Color::Yellow,
-							  ftxui::Color::GrayDark,
-							  ftxui::Color::SandyBrown,
-							  ftxui::Color::DarkGreen,
-							  ftxui::Color::DarkBlue,
-							  ftxui::Color::DarkOrange3,
-							  ftxui::Color::GrayLight,
-							  ftxui::Color::Orange1,
-							};
+	  ftxui::Color::Black,
+	  ftxui::Color::Cyan,
+	  ftxui::Color::Red,
+	  ftxui::Color::GrayDark,
+	  ftxui::Color::SandyBrown,
+	  ftxui::Color::DarkGreen,
+	  ftxui::Color::DarkBlue,
+	  ftxui::Color::DarkOrange3,
+	  ftxui::Color::GrayLight,
+	  ftxui::Color::Orange1,
+};
 
-ftxui::Color visit_color = ftxui::Color::GrayLight;
+ftxui::Color Visited_cell[] = {
+	  ftxui::Color::Salmon1,
+	  ftxui::Color::Green3Bis,
+	  ftxui::Color::Blue3Bis,
+	  ftxui::Color::DarkOrange3Bis,
+};
+
+//ftxui::Color visit_color = ftxui::Color::GrayLight;
 ftxui::Color path_color = ftxui::Color::Orange1;
 							  							  
 ftxui::Canvas matrix_to_canvas(Grid grid, ftxui::Screen& screen){
@@ -62,24 +69,26 @@ ftxui::Canvas matrix_to_canvas(Grid grid, ftxui::Screen& screen){
 		for ( int c = 0; c < cols; c++){
 			int color_ind = grid.get_index(r, c);
 
+			if(color_ind == 0){
+				continue;
+			}
+
 			ftxui::Color cell_color;
 
 			if(color_ind < Type(visited)){
-				cell_color = Color_cell[color_ind];
-
+					cell_color = Color_cell[color_ind];
 			}
 
 			if(color_ind >= Type(visited)){
-				cell_color = visit_color;
+				if(color_ind % 10 == 0){
+					cell_color = ftxui::Color::GrayLight;
+				}else{
+					cell_color = Visited_cell[(color_ind % 10)-4];
+				}
 			}
 
 			if(color_ind >= Type(path)){
 				cell_color = path_color;
-			}
-
-
-			if(color_ind == 0){
-				continue;
 			}
 
 			for ( int l = 0; l <= cell_dim_y-2; l++){
@@ -94,4 +103,3 @@ ftxui::Canvas matrix_to_canvas(Grid grid, ftxui::Screen& screen){
 
 	return canvas;
 }
-

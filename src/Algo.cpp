@@ -69,7 +69,6 @@ BreathFirstSearch(Matrix& matrix){
 				if(cost_so_far.find(near[i]) == cost_so_far.end()){
 					if(matrix[near[i].y][near[i].x] != Type(end)){
 						matrix[near[i].y][near[i].x] = Type(visited) + matrix[near[i].y][near[i].x];
-
 					}
 				}
 				cost_so_far[near[i]] = new_cost; 
@@ -134,16 +133,16 @@ int get_cell_priority(int value){
 		//	priority = 1;
 		//	break;
 		case Type(sand):
-			priority = 2;
+			priority = 5;
 			break;
 		case Type(woods):
-			priority = 3;
+			priority = 6;
 			break;
 		case Type(water):
-			priority = 4;
+			priority = 7;
 			break;
 		case Type(mountains):
-			priority = 6;
+			priority = 9;
 			break;
 	}
 	return priority;
@@ -201,7 +200,7 @@ Dijkstra(Matrix& matrix){
 			bool diagonal = (current.y != near[i].y && current.x != near[i].x);
 			//find the cost for the next tile(cell)
 			double new_cost = cost_so_far[current] + 
-					(get_cell_priority(matrix[near[i].y][near[i].x])) + (diagonal?0.4:0);
+					(get_cell_priority(matrix[near[i].y][near[i].x])) + (diagonal?0.5:0);
 
 			if (cost_so_far.find(near[i]) == cost_so_far.end() 
 					|| new_cost < cost_so_far[near[i]]) {
@@ -325,7 +324,7 @@ AStar(Matrix& matrix){
 			bool diagonal = (current.y != near[i].y && current.x != near[i].x);
 			//find the cost for the next tile(cell)
 			double new_cost = cost_so_far[current] + 
-					(get_cell_priority(matrix[near[i].y][near[i].x])) + (diagonal?0.4:0);
+					(get_cell_priority(matrix[near[i].y][near[i].x])) + (diagonal?0.5:0);
 
 			if (cost_so_far.find(near[i]) == cost_so_far.end() 
 					|| new_cost < cost_so_far[near[i]]) {

@@ -434,7 +434,9 @@ int main(int argc, const char* argv[]) {
 
 			// Trigger for button START
 			if(e == Event::Character('s')){
-				grid.solve(selected); 
+				if(!thread_active){ 
+					grid.solve(selected);
+				}
 			}
 			
 			// Trigger for button RESET
