@@ -441,7 +441,9 @@ int main(int argc, const char* argv[]) {
 			
 			// Trigger for button RESET
 			if(e == Event::Character('r')){
-				grid.reset(); 
+				if(!thread_active){ 
+					grid.reset(); 
+				}
 			}
 
 			// Trigger for button CLEAR
@@ -449,16 +451,27 @@ int main(int argc, const char* argv[]) {
 				depth = 3;
 			}
 
+			// Trigger for clear all aditional tiles(added)
 			if(e == Event::Character('a')){
-				grid.clear_all();
+				if(!thread_active){ 
+					grid.clear_all();
+					depth = 0;
+				}
 			}
 
+			// Trigger for clear only path created on the map
 			if(e == Event::Character('p')){
-				grid.clear_path();
+				if(!thread_active){ 
+					grid.clear_path();
+					depth = 0;
+				}
 			}
 
+			// Draw the map on the screen
 			if(e == Event::Character('m')){
-				grid.draw_map();
+				if(!thread_active){ 
+					grid.draw_map();
+				}
 			}
 
 			// Trigger for quiting application in a clean way

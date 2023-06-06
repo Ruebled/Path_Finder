@@ -18,8 +18,8 @@ Grid::Grid() {
 	this->matrix = Matrix();
 	this->maps = FileMaps();
 
-	matrix.set_start(this->start_y, this->start_x);
-	matrix.set_end(this->end_y, this->end_x);
+	matrix.set_start(rs_start_point);
+	matrix.set_end(rs_end_point);
 
 	Grid::reset();
 }
@@ -44,11 +44,6 @@ int Grid::height(){
 
 int Grid::get_index(unsigned int y, unsigned int x){
 	return matrix[y][x];
-}
-
-void Grid::set_value(unsigned int y, unsigned int x, unsigned int value){
-	matrix[y][x] = Type(value);	
-	return;
 }
 
 void Grid::clear_path(){
@@ -101,12 +96,12 @@ void Grid::reset(){
 	}
 
 	// Set start point using
-	matrix[start_y][start_x] = Type(start);
+	matrix[rs_start_point.y][rs_start_point.x] = Type(start);
 	//
-	matrix.set_start(start_y, start_x);
+	matrix.set_start(rs_start_point);
 
 	// Set end point
-	matrix[end_y][end_x] = Type(end);
+	matrix[rs_end_point.y][rs_end_point.x] = Type(end);
 	// Null benchmark value
 	cpu_time = 0;
 	real_time = 0;
@@ -160,18 +155,16 @@ void Grid::map_save(){
 
 	map.resize(matrix.height(), std::vector<int>(matrix.width(), 0));
 
+	Grid::clear_path();
+
 	for(int row = 0; row < matrix.height(); row++){
 		for(int col = 0; col < matrix.width(); col++){
-			if(matrix[row][col] == Type(start) || 
-			   matrix[row][col] == Type(end) || 
-			   matrix[row][col] == Type(wall)){
-				map[row][col] = matrix[row][col];
-			}else{
-				map[row][col] = Type(empty);
-			}
+			map[row][col] = matrix[row][col];
 		}
 	}
+
 	this->maps.save_map(map);		
+
 	return;
 }
 
@@ -195,10 +188,10 @@ void Grid::draw_map(){
 			this->matrix[row][col] = map[row][col];
 
 			if(map[row][col] == Type(start)){
-				matrix.set_start(row, col);
+				matrix.set_start(point{row, col});
 			}
 			if(map[row][col] == Type(end)){
-				matrix.set_end(row, col);
+				matrix.set_end(point{row, col});
 			}
 		}
 	}
@@ -217,18 +210,16 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 	int& cell = matrix[row][col];
 
 	if(!mouse_pressed){
-		this->last_y = -1;
-		this->last_x = -1;
+		this->last_pos = {-1, -1};
 
 		this->set_state = 0;
 	}
 
 	if(left_click && mouse_pressed){
 		// State if just clicking
-		if(this->last_x != col || this->last_y != row){
+		if(this->last_pos.x != col || this->last_pos.y != row){
 			this->cell_pos_changed = true;
-			this->last_y = row;
-			this->last_x = col;
+			this->last_pos = {row, col};
 		}
 		if(!cell_pos_changed || thread_active){
 			this->cell_pos_changed = false;
@@ -318,7 +309,7 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 					this->last_cell_state = cell;
 
 					cell = Type(start);
-					matrix.set_start(row, col);
+					matrix.set_start(point{row, col});
 					break;
 			}
 		}else if(set_state == 4){
@@ -334,7 +325,7 @@ void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 					this->last_cell_state = cell;
 
 					cell = Type(end);
-					matrix.set_end(row, col);
+					matrix.set_end(point{row, col});
 					break;
 			}
 

@@ -9,8 +9,8 @@ class FileMaps{
 
 		int left_pos = 0;
 
-		unsigned int dim_x = 20; // cell on x axis of the grid
-		unsigned int dim_y = 14; // cell on y axis of the grid
+		int dim_x = 20; // cell on x axis of the grid
+		int dim_y = 14; // cell on y axis of the grid
 
 	public:
 		FileMaps();

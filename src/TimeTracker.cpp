@@ -38,9 +38,7 @@ void TimeTracker::rlt_pause(){
 
 void TimeTracker::rlt_stop(){
 	if(rlt_count_state){
-		rlt_end_t = std::chrono::steady_clock::now();
-		rlt_elapsed_t += rlt_end_t - rlt_start_t;
-		rlt_count_state = 0;
+		TimeTracker::rlt_pause();
 	}
 
 	rlt_int_t = std::chrono::floor<std::chrono::milliseconds>(rlt_elapsed_t).count();
@@ -68,7 +66,7 @@ void TimeTracker::cpu_stop(){
 	}
 
 	cpu_int_t = std::chrono::floor<std::chrono::nanoseconds>(cpu_elapsed_t).count();
-	cpu_time = (cpu_int_t)/1000000 + ((float) (cpu_int_t%1000000))/1000000;
+	cpu_time = (cpu_int_t)/1000000 + ((float) (cpu_int_t%1000000)/1000000);
 	return;
 }
 

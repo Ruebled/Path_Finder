@@ -397,11 +397,11 @@ std::vector<point>
 get_neighbors(Matrix& mat, point t_point){
 	std::vector<point> neigh;
 
-	unsigned int width = mat.width();
-	unsigned int height = mat.height();
+	int width = mat.width();
+	int height = mat.height();
 
-	unsigned int px = t_point.x;
-	unsigned int py = t_point.y;
+	int px = t_point.x;
+	int py = t_point.y;
 
 	// Some magic (half asleep)
 	for(int row=-1; row<2; row++){
@@ -418,7 +418,7 @@ get_neighbors(Matrix& mat, point t_point){
 			//check if it's a diagonal to be pushed back 
 			if((t_y != py && t_x != px) && !diag_checked) continue;
 
-			neigh.push_back(point{(unsigned int)t_y, (unsigned int)t_x});
+			neigh.push_back(point{t_y, t_x});
 		}
 	}
 

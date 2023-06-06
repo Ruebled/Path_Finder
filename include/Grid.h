@@ -14,16 +14,12 @@ class Grid {
 		int dim_cell_y = 12;
 
 		// Last cell addresses where mouse where positioned
-		int last_x = -1;
-		int last_y = -1;
+		point last_pos = {-1, -1};
 
 		// Starting point reset location
-		const unsigned int start_y = 7;
-		const unsigned int start_x = 6;
-
+		const point rs_start_point = {7, 6};
 		// Ending point reset location
-		const unsigned int end_y = 7;
-		const unsigned int end_x = 14;
+		const point rs_end_point = {7, 14};
 
 		// Remember current state
 		// default 0
@@ -36,8 +32,8 @@ class Grid {
 		bool cell_pos_changed = false;
 
 		// Checkable flags during moving and grid drawing
-		int start_set = 1;
-		int end_set = 1;
+		bool start_set = true;
+		bool end_set = true;
 
 		// Last cell address save for restoring start and end around
 		int last_row;
@@ -64,7 +60,6 @@ class Grid {
 		int height();
 
 		int get_index(unsigned int, unsigned int);
-		void set_value(unsigned int, unsigned int, unsigned int value);
 
 		void clear_path();
 		void clear_all();
