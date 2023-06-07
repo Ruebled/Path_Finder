@@ -206,7 +206,9 @@ void Grid::draw_map(){
 void Grid::on_mouse_event(int row, int col, bool left_click, int mouse_pressed){
 	// Case where matrix indexes are out of bounds
 	if(Grid::width() <= col || Grid::height() <= row){ 
-		this->set_state = 0;
+		if(this->set_state > 2){
+			this->set_state = 0;
+		}
 		return; 
 	}
 

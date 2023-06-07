@@ -20,3 +20,14 @@ cmake ..
 make -j
 ./Path_finder
 ~~~
+
+## Note
+Like specified in documentation, the project need to be made responsive
+for different size of screens.
+
+As of now the size of the terminal window needed for the project to work is 45x194.
+
+On running *./Path_finder* from /build directory, if the terminal window size is 
+not matching a message of unfitness will appear until terminal window size is right.
+
+Application tested on Archlinux using alacritty and Ubuntu using gnome-terminal.
