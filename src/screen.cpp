@@ -39,6 +39,14 @@ ftxui::Canvas matrix_to_canvas(Grid grid, ftxui::Screen& screen){
 		std::string h_text = "Too little vertical space";
 		canvas.DrawText(0,0, h_text);
 		return canvas;	
+	}else if(screen.dimx()>194){
+		std::string h_text = "Too much horizontal space";
+		canvas.DrawText(0,0, h_text);
+		return canvas;	
+	}else if(screen.dimy()>45){
+		std::string h_text = "Too much vertical space";
+		canvas.DrawText(0,0, h_text);
+		return canvas;	
 	}
 
 	// Draw the Main axis from point 0, 0
