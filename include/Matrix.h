@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Matrix_row.h"
+#include <tuple>
 
 struct point{
 	int y;
