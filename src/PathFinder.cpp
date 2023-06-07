@@ -41,19 +41,6 @@ int main(int argc, const char* argv[]) {
 	//Save terminal state for latter restoring 
 	tcgetattr(STDIN_FILENO, &Original_Termios);
 
-	struct winsize ws;
-
-	ws.ws_row = 194;
-	ws.ws_col = 45;
-
-	 int fd = STDOUT_FILENO;
-
-    // Change the terminal size
-    if (ioctl(fd, TIOCSWINSZ, &ws) == -1) {
-        perror("ioctl");
-        return 1;
-    }
-
 	using namespace ftxui;
 
 	//Create the screen and calculate grid size
