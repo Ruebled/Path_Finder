@@ -25,6 +25,8 @@ std::atomic<bool> refresh_ui_continue;
 // Variable for storing if diagonals will be used
 extern bool diag_checked;
 
+bool diagonal_checked;
+
 // Draw window flag
 int depth = 2;
 
@@ -113,14 +115,12 @@ int main(int argc, const char* argv[]) {
 		"A Star"
 	};
 
-	auto algo_select_menu = Radiobox(&algorithms_name, &selected);
+	auto algo_select_menu = Container::Vertical({ Radiobox(&algorithms_name, &selected)});
 
 	// Define checkbox for chosing diagonal finding
 	std::string diag_str = "Allow diagonal";
 
-	bool diagonal_checked = false;
-
-	auto diagonal_check = Checkbox(&diag_str, &diagonal_checked);
+	auto diagonal_check = Container::Vertical({ Checkbox(&diag_str, &diagonal_checked)});
 
 	// Define the buttons and their functions
 	auto button_style = ButtonOption::Animated(Color::Default, Color::GrayDark,
@@ -383,7 +383,7 @@ int main(int argc, const char* argv[]) {
 						paragraph(shortcuts_text[10]), 	
 						paragraph(shortcuts_text[11]), 	
 						paragraph(shortcuts_text[12]), 	
-						paragraph(shortcuts_text[13]), 	
+						//paragraph(shortcuts_text[13]), 	
 					}),
 				}),
 			}) | border;
@@ -454,7 +454,7 @@ int main(int argc, const char* argv[]) {
 		if (depth == 4){
 			document = dbox({
 				document,
-				shortcut_window_renderer->Render() | clear_under | size(HEIGHT, EQUAL, 16) | size(WIDTH, EQUAL, 60) | center,
+				shortcut_window_renderer->Render() | clear_under | size(HEIGHT, EQUAL, 17) | size(WIDTH, EQUAL, 60) | center,
 			});
 		}
 
@@ -465,18 +465,17 @@ int main(int argc, const char* argv[]) {
 	// Maps clear key event
 	main_renderer |= CatchEvent([&](Event e) {
 
+		// Trigger action to open select type of menu option
+		if(e.is_mouse()){
+			if(e.mouse().button == Mouse::Right) { depth = 1; }
+		}
+
 		// On escape close all aditional windows
-		if(depth && e == Event::Escape){
+		if(depth && e == Event::Special("\x1B")){
 			depth = 0;
 			return false;
 		}
 
-		// Trigger action to open select type of menu option
-		if(e.is_mouse()){
-			if(e.mouse().button == Mouse::Right) { depth = 1; }
-			//else if(e.mouse().button == Mouse::Left) { depth = 0; }
-			// Trigger action to close any window opened using click
-		}
 
 		if(e.is_character()){
 			//Trigger for opening help modal window
@@ -528,6 +527,7 @@ int main(int argc, const char* argv[]) {
 			// Trigger for button START
 			if(e == Event::Character('s')){
 				if(!thread_active){ 
+					diag_checked = diagonal_checked;
 					grid.solve(selected);
 					return false;
 				}
@@ -584,6 +584,7 @@ int main(int argc, const char* argv[]) {
 				tcsetattr(STDIN_FILENO, TCSANOW, &Original_Termios);
 				std::exit(EXIT_SUCCESS);
 			}
+			return false;
 		}	
 		return false;
 	});

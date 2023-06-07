@@ -10,7 +10,7 @@ float cost_path = 0;
 extern bool thread_active;
 
 // Diagonal calc 
-bool diag_checked = false;
+bool diag_checked;
 
 inline double get_cell_priority(int value){
 	double priority = 0;
