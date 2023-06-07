@@ -8,6 +8,7 @@ git
 cmake
 make
 g++
+xterm <!-- for resize terminal command to work -->
 
 # Build instructions:
 ~~~bash
@@ -18,6 +19,7 @@ cd build
 <!-- Next comand requires internet connection and a lot of patience  -->
 cmake ..
 make -j
+resize -s 45 194 <!-- optional, to resize the terminal size for app to open the right way -->
 ./Path_finder
 ~~~
 
