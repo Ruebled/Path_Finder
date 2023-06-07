@@ -41,6 +41,19 @@ int main(int argc, const char* argv[]) {
 	//Save terminal state for latter restoring 
 	tcgetattr(STDIN_FILENO, &Original_Termios);
 
+	struct winsize ws;
+
+	ws.ws_row = 194;
+	ws.ws_col = 45;
+
+	 int fd = STDOUT_FILENO;
+
+    // Change the terminal size
+    if (ioctl(fd, TIOCSWINSZ, &ws) == -1) {
+        perror("ioctl");
+        return 1;
+    }
+
 	using namespace ftxui;
 
 	//Create the screen and calculate grid size
@@ -178,6 +191,10 @@ int main(int argc, const char* argv[]) {
 	});
 	
 	auto main_screen_renderer = Renderer(components, [&] {
+		if(screen.dimx()!=screen_x || screen.dimy()!=screen_y){
+			return hbox({ grid_with_mouse->Render() | border });
+		}
+
 		return hbox({ 
 			grid_with_mouse->Render() | border,
 
@@ -421,6 +438,10 @@ int main(int argc, const char* argv[]) {
 
 	auto main_renderer = Renderer(main_container, [&] {
 		Element document = main_screen_renderer->Render();
+
+		if(screen.dimx()!=screen_x || screen.dimy()!=screen_y){
+			return document;
+		}
 		
 		if (depth == 1){
 			document = dbox({
@@ -430,6 +451,7 @@ int main(int argc, const char* argv[]) {
 		}
 
 		if (depth == 2){
+
 			document = dbox({
 				document,
 				help_window_renderer->Render() | clear_under | size(HEIGHT, EQUAL, 39) | size(WIDTH, EQUAL, 80) | center ,

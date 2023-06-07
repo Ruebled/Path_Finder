@@ -28,8 +28,14 @@
 #include "ftxui/component/component_options.hpp"  
 #include "ftxui/component/screen_interactive.hpp"
 
+#include <sys/ioctl.h>
+
 // Application local includes
 #include "Grid.h"
+
+// Defined fixed screen sizes for the project to work
+const int screen_x = 194;
+const int screen_y = 45;
 
 ftxui::Canvas matrix_to_canvas(Grid grid, ftxui::Screen&);
 
