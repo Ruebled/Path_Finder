@@ -11,7 +11,6 @@ ftxui::Color Color_cell[] = {
 	  ftxui::Color::DarkBlue,
 	  ftxui::Color::DarkOrange3,
 	  ftxui::Color::GrayLight,
-	  ftxui::Color::Orange1,
 };
 
 ftxui::Color Visited_cell[] = {
@@ -22,7 +21,7 @@ ftxui::Color Visited_cell[] = {
 };
 
 //ftxui::Color visit_color = ftxui::Color::GrayLight;
-ftxui::Color path_color = ftxui::Color::Orange1;
+ftxui::Color path_color = ftxui::Color::Magenta;
 							  							  
 ftxui::Canvas matrix_to_canvas(Grid grid, ftxui::Screen& screen){
     int rows = grid.height();

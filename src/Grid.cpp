@@ -13,6 +13,7 @@ bool thread_active = false;
 extern float cpu_time;
 extern float real_time;
 extern int distance_path;
+extern float cost_path;
 
 Grid::Grid() {
 	this->matrix = Matrix();
@@ -61,6 +62,7 @@ void Grid::clear_path(){
 	cpu_time = 0;
 	real_time = 0;
 	distance_path = 0;
+	cost_path = 0;
 
 	return;
 }
@@ -82,6 +84,7 @@ void Grid::clear_all(){
 	cpu_time = 0;
 	real_time = 0;
 	distance_path = 0;
+	cost_path = 0;
 
 	return;
 }
@@ -113,6 +116,7 @@ void Grid::solve(int choice){
 	cpu_time = 0;
 	real_time = 0;
 	distance_path = 0;
+	cost_path = 0;
 
 	Grid::clear_path();
 

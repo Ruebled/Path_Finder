@@ -10,6 +10,9 @@ extern float real_time;
 // Distance of the found path
 extern int distance_path;
 
+// Cost of the found path
+extern float cost_path;
+
 // Thread status
 extern bool thread_active;
 
@@ -22,8 +25,14 @@ std::atomic<bool> refresh_ui_continue;
 // Variable for storing if diagonals will be used
 extern bool diag_checked;
 
+// Draw window flag
+int depth = 2;
+
 // Colors for different tiles
 extern ftxui::Color Color_cell[];
+
+// Radiobutton selector
+int selected = 0;
 
 // main function of the application
 int main(int argc, const char* argv[]) {
@@ -85,7 +94,6 @@ int main(int argc, const char* argv[]) {
 				coord_temp = ftxui::text(str);	
 			}
 
-
 			grid.on_mouse_event(row_pixel, 
 								col_pixel, 
 								mouse.button == Mouse::Left,
@@ -97,29 +105,32 @@ int main(int argc, const char* argv[]) {
 	});
 
 	// Radio buttons for choosing pathfinding algorithms
-	int selected = 0;
 
 	// The list for algorithms
 	std::vector<std::string> algorithms_name = {
 		"Breadth First Search",
-		"Djikstra",
+		"Dijkstra",
 		"A Star"
 	};
+
+	auto algo_select_menu = Radiobox(&algorithms_name, &selected);
 
 	// Define checkbox for chosing diagonal finding
 	std::string diag_str = "Allow diagonal";
 
-	auto algo_select_menu = Container::Vertical({ Radiobox(&algorithms_name, &selected)});
-	auto diagonal_check = Container::Vertical({ Checkbox(&diag_str, &diag_checked)});
+	bool diagonal_checked = false;
 
-	int depth = 2;
+	auto diagonal_check = Checkbox(&diag_str, &diagonal_checked);
 
 	// Define the buttons and their functions
 	auto button_style = ButtonOption::Animated(Color::Default, Color::GrayDark,
                                              Color::Default, Color::White);
 
 	auto start_button = Button("Start", 
-							   [&] { if(!thread_active){ grid.solve(selected); } }, 
+							   [&] { if(!thread_active){ 
+								   diag_checked = diagonal_checked; 
+								   grid.solve(selected); 
+							   } }, 
 							   &button_style
 							  )|bold;
 
@@ -157,7 +168,7 @@ int main(int argc, const char* argv[]) {
 			map_button
 			});
 
-	auto components = ftxui::Container::Horizontal({grid_with_mouse,  buttons, algo_select_menu, diagonal_check});
+	auto components = ftxui::Container::Horizontal({grid_with_mouse, buttons, algo_select_menu, diagonal_check});
 
 	// Instructions for main window
 	ftxui::Element instructions_en = ftxui::vbox({
@@ -201,7 +212,7 @@ int main(int argc, const char* argv[]) {
 						text("Performance") | center,
 						hbox({
 							text("CPU time: "),
-							toShorterFloat(cpu_time, 7),
+							toShorterFloat(cpu_time, 5),
 							text(" ms")
 						})|center,
 						hbox({
@@ -212,6 +223,10 @@ int main(int argc, const char* argv[]) {
 						hbox({
 							text("Distance: "),
 							text(std::to_string(distance_path))
+						})|center,
+						hbox({
+							text("Cost: "),
+							toShorterFloat(cost_path, 6),
 						})|center,
 					}),
 				separator(),
@@ -261,7 +276,9 @@ int main(int argc, const char* argv[]) {
 		"Drawing the map",
 		"Using *rigth click* an window with clickable elements(types of tiles for choosing) will appear at the center of the screen",
 		"The drawing is also done using the mouse",
-		"To move the *start* or *end* points tiles, click, move and drop can be used",
+		"To move the",
+		"or",
+		"points tiles, click, move and drop can be used",
 
 		"Algorithms menu",
 		"From the radio buttons list an algorithm for testing can be choosen",
@@ -270,8 +287,8 @@ int main(int argc, const char* argv[]) {
 		"Start - is used to start the path finding algorithm choosen",
 		"Reset - is for reseting initial state of the board",
 		"Clear - when clicked an window with:",
-		"		 *Clear path* - clears the path remained after the pathfinding",
-		"		 *Clear all* - clears all the tiles but the *start* and *end* points",
+		"     *Clear path* - clears the path remained after the pathfinding",
+		"     *Clear all* - clears all the tiles but the *start* and *end* points",
 	   	"Map - is used to retrieve the maps saved before",
 
 		"Path finding process",
@@ -279,11 +296,10 @@ int main(int argc, const char* argv[]) {
 		"When the path is found the algorithms stop checking any other tiles, and start to draw backwards the path found, then reverse visited tiles the way checked",
 		"Then *real time* and the *CPU time* that the algorithm spent is displayed above the buttons.",
 
-		"Shortcuts",
-		" 'S' - saves the current drawn map;",
-		" 'R' - clears the maps saved;", 
-		" 'Q' - exits the app;",
-		" '<ESC>' - exits aditional windows appeared;",
+		"====Use K for list of shortcuts====",
+		"----Use ESC button to close the window----",
+		"start",
+		"end",
 	};
 	
 
@@ -291,33 +307,85 @@ int main(int argc, const char* argv[]) {
 		return vbox({
 				text("The HELP!") | center | bold,
 				separator(),
-				paragraph(help_text[0]), 
-				separatorEmpty(),
-				paragraph(help_text[1]) | bold,
-				paragraph(help_text[2]), 	
-				paragraph(help_text[3]), 	
-				paragraph(help_text[4]), 	
-				separatorEmpty(),
-				paragraph(help_text[5]) | bold,	
-				paragraph(help_text[6]), 	
-				separatorEmpty(),
-				paragraph(help_text[7]) | bold, 	
-				paragraph(help_text[8]), 	
-				paragraph(help_text[9]), 	
-				paragraph(help_text[10]),	
-				paragraph(help_text[11]),	
-				paragraph(help_text[12]),	
-				paragraph(help_text[13]),	
-				separatorEmpty(),
-				paragraph(help_text[14]) | bold,	
-				paragraph(help_text[15]),	
-				paragraph(help_text[16]),	
-				paragraph(help_text[17]),	
-				separatorEmpty(),
-				paragraph(help_text[18]) | bold,	
-				paragraph(help_text[19]),	
-				paragraph(help_text[20]),	
-				paragraph(help_text[21]),	
+				vbox({
+					paragraph(help_text[0]),
+					separatorEmpty(),
+					paragraph(help_text[1]) | bold,
+					paragraph(help_text[2]), 	
+					paragraph(help_text[3]), 	
+					hbox({
+						paragraph(help_text[4]),
+						paragraph(help_text[22]) | color(Color::Cyan) | bold,
+						paragraph(help_text[5]),
+						paragraph(help_text[23]) | color(Color::Red) | bold,
+						paragraph(help_text[6]),
+					}),
+					separatorEmpty(),
+					paragraph(help_text[7]) | bold,	
+					paragraph(help_text[8]), 	
+					separatorEmpty(),
+					paragraph(help_text[9]) | bold, 	
+					paragraph(help_text[10]), 	
+					paragraph(help_text[11]), 	
+					paragraph(help_text[12]),	
+					paragraph(help_text[13]),	
+					paragraph(help_text[14]),	
+					paragraph(help_text[15]),	
+					separatorEmpty(),
+					paragraph(help_text[16]) | bold,	
+					paragraph(help_text[17]),	
+					paragraph(help_text[18]),	
+					separatorEmpty(),
+					paragraph(help_text[19]),	
+					separatorEmpty(),
+					paragraph(help_text[20]) | bold | center,
+					separatorEmpty(),
+					paragraph(help_text[21]) | bold | center,
+				}) | borderEmpty,
+			}) | border;
+	});
+
+	// Shortcuts window
+	std::vector<std::string> shortcuts_text = {
+		" 'S' - saves the current drawn map;",
+		" 'R' - clears the maps saved;", 
+		" 'Q' - exits the app;",
+		" '<ESC>' - exits aditional windows appeared;",
+		" 's' - start the solving algorithm",
+		" 'r' - reset the grid to the initial state",
+		" 'c' - open choosing clear type window",
+		" 'a' - clear all tiles besides start and end point",
+		" 'm' - draw the next map saved on the screen",
+		" 'd' - check 'allow diagonal' option",
+		" '1' - choose first algorithm in the list",
+		" '2' - choose second algorithm in the list",
+		" '3' - choose third algorithm in the list",
+	};
+	
+
+	auto shortcut_window_renderer = Renderer( [&] {
+		return vbox({
+				text("Shortcuts") | center | bold,
+				separator(),
+				hbox({
+					dbox({})| size(WIDTH, EQUAL, 4),
+					vbox({
+						paragraph(shortcuts_text[0]),
+						paragraph(shortcuts_text[1]),
+						paragraph(shortcuts_text[2]), 	
+						paragraph(shortcuts_text[3]), 	
+						paragraph(shortcuts_text[4]), 	
+						paragraph(shortcuts_text[5]),
+						paragraph(shortcuts_text[6]),
+						paragraph(shortcuts_text[7]), 	
+						paragraph(shortcuts_text[8]), 	
+						paragraph(shortcuts_text[9]), 	
+						paragraph(shortcuts_text[10]), 	
+						paragraph(shortcuts_text[11]), 	
+						paragraph(shortcuts_text[12]), 	
+						paragraph(shortcuts_text[13]), 	
+					}),
+				}),
 			}) | border;
 	});
 
@@ -331,11 +399,11 @@ int main(int argc, const char* argv[]) {
                                              Color::Default, Color::White);
 
 	auto clear_window_container = Container::Vertical({
-		Button(&clear_button_text[0], [&] { grid.clear_path(); depth = 0; }, &button_tile_style_wall) | center,
-		Button(&clear_button_text[1], [&] { grid.clear_all(); depth = 0; }, &clear_button_style) | center,
+		Button(&clear_button_text[0], [&] { if(!thread_active){grid.clear_path(); depth = 0;} }, &clear_button_style) | center,
+		Button(&clear_button_text[1], [&] { if(!thread_active){grid.clear_all(); depth = 0;} }, &clear_button_style) | center,
 	});
 
-	auto clear_window_renderer = Renderer( clear_window_container, [&] {
+	auto clear_window_renderer = Renderer(clear_window_container, [&] {
 		return vbox({
 				vbox(clear_window_container->Render()),
 		})|border;
@@ -348,10 +416,12 @@ int main(int argc, const char* argv[]) {
 		tiles_selector_modal_renderer,
 		help_window_renderer,
 		clear_window_renderer,
+		shortcut_window_renderer,
 	}, &depth);
 
 	auto main_renderer = Renderer(main_container, [&] {
 		Element document = main_screen_renderer->Render();
+		
 		if (depth == 1){
 			document = dbox({
 				document,
@@ -362,7 +432,7 @@ int main(int argc, const char* argv[]) {
 		if (depth == 2){
 			document = dbox({
 				document,
-				help_window_renderer->Render() | clear_under | size(HEIGHT, EQUAL, 40) | size(WIDTH, EQUAL, 70) | center ,
+				help_window_renderer->Render() | clear_under | size(HEIGHT, EQUAL, 39) | size(WIDTH, EQUAL, 80) | center ,
 			});
 		}
 		
@@ -381,61 +451,85 @@ int main(int argc, const char* argv[]) {
 				});
 		}
 
+		if (depth == 4){
+			document = dbox({
+				document,
+				shortcut_window_renderer->Render() | clear_under | size(HEIGHT, EQUAL, 16) | size(WIDTH, EQUAL, 60) | center,
+			});
+		}
+
 		return document;
 	});
 
 
 	// Maps clear key event
 	main_renderer |= CatchEvent([&](Event e) {
+
+		// On escape close all aditional windows
+		if(depth && e == Event::Escape){
+			depth = 0;
+			return false;
+		}
+
 		// Trigger action to open select type of menu option
 		if(e.is_mouse()){
 			if(e.mouse().button == Mouse::Right) { depth = 1; }
-		}
-
-		// On escape close all aditional windows
-		if(e == Event::Escape){
-			depth = 0;
+			//else if(e.mouse().button == Mouse::Left) { depth = 0; }
+			// Trigger action to close any window opened using click
 		}
 
 		if(e.is_character()){
 			//Trigger for opening help modal window
 			if(e == Event::Character('H')){
 				depth = 2;
+				return false;
+			}
+
+			if(e == Event::Character('K')){
+				depth = 4;
+				return false;
 			}
 
 			// Trigger for deleting all saved maps
 			if(e == Event::Character('R')){
 				grid.map_clear(); 
+				return false;
 			}
 
 			// Trigger for saving current drawn maps in a file
 			if(e == Event::Character('S')){
 				grid.map_save(); 
+				return false;
 			}
 
 			// Trigger for choosing 1'st algorithm
 			if(e == Event::Character('1')){
 				selected = 0;
+				return false;
 			}
 			
 			// Trigger for choosing 2'nd algorithm
 			if(e == Event::Character('2')){
 				selected = 1;
+				return false;
 			}
 
 			// Trigger for choosing 3'rd algorithm
 			if(e == Event::Character('3')){
 				selected = 2;
+				return false;
 			}
 
 			if(e == Event::Character('d')){
-				diag_checked = diag_checked ^ 1;
+				diagonal_checked = diagonal_checked ^ 1;
+				return false;
 			}
 
 			// Trigger for button START
 			if(e == Event::Character('s')){
 				if(!thread_active){ 
 					grid.solve(selected);
+					return false;
 				}
 			}
 			
@@ -443,12 +537,14 @@ int main(int argc, const char* argv[]) {
 			if(e == Event::Character('r')){
 				if(!thread_active){ 
 					grid.reset(); 
+					return false;
 				}
 			}
 
 			// Trigger for button CLEAR
 			if(e == Event::Character('c')){
 				depth = 3;
+				return false;
 			}
 
 			// Trigger for clear all aditional tiles(added)
@@ -456,6 +552,7 @@ int main(int argc, const char* argv[]) {
 				if(!thread_active){ 
 					grid.clear_all();
 					depth = 0;
+					return false;
 				}
 			}
 
@@ -464,6 +561,7 @@ int main(int argc, const char* argv[]) {
 				if(!thread_active){ 
 					grid.clear_path();
 					depth = 0;
+					return false;
 				}
 			}
 
@@ -471,6 +569,7 @@ int main(int argc, const char* argv[]) {
 			if(e == Event::Character('m')){
 				if(!thread_active){ 
 					grid.draw_map();
+					return false;
 				}
 			}
 

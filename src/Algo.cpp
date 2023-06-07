@@ -3,12 +3,36 @@
 // distance of the path
 int distance_path = 0;
 
+// cost of the path
+float cost_path = 0;
+
 // Global variable for thread status
 extern bool thread_active;
 
 // Diagonal calc 
 bool diag_checked = false;
 
+inline double get_cell_priority(int value){
+	double priority = 0;
+	switch(value){
+		case Type(empty):
+			priority = 1;
+			break;
+		case Type(sand):
+			priority = 3;
+			break;
+		case Type(woods):
+			priority = 5;
+			break;
+		case Type(water):
+			priority = 7;
+			break;
+		case Type(mountains):
+			priority = 9;
+			break;
+	}
+	return priority;
+}
 
 void 
 BreathFirstSearch(Matrix& matrix){
@@ -33,6 +57,9 @@ BreathFirstSearch(Matrix& matrix){
 	came_from[start_point] = start_point;
 	cost_so_far[start_point] = 0;
 
+	std::map<point, double> cost_stats;
+	cost_stats[start_point] = 0;
+
 	// Define in outer scope the current point that is checked
 	point current;
 
@@ -51,6 +78,7 @@ BreathFirstSearch(Matrix& matrix){
 
 		if(matrix[current.y][current.x] == Type(end)){
 			path_found = true;
+			cost_path = cost_stats[current];
 			break;
 		}
 		// Get a <point> vector of current location neighbors
@@ -63,6 +91,9 @@ BreathFirstSearch(Matrix& matrix){
 			//find the cost for the next tile(cell)
 			double new_cost = cost_so_far[current] + (diagonal?1.4:1);
 
+			//
+			double stat_cost = cost_stats[current] + (diagonal?0.4:0) + get_cell_priority(matrix[near[i].y][near[i].x]);
+
 			if (cost_so_far.find(near[i]) == cost_so_far.end() 
 					|| new_cost < cost_so_far[near[i]]) {
 
@@ -71,6 +102,10 @@ BreathFirstSearch(Matrix& matrix){
 						matrix[near[i].y][near[i].x] = Type(visited) + matrix[near[i].y][near[i].x];
 					}
 				}
+	
+				// map to store the cost(plus of the cells)
+				cost_stats[near[i]] = stat_cost;
+
 				cost_so_far[near[i]] = new_cost; 
 				came_from[near[i]] = current;
 				neigh.push(CElement{near[i], new_cost});
@@ -126,28 +161,6 @@ BreathFirstSearch(Matrix& matrix){
 	return;
 }
 
-int get_cell_priority(int value){
-	int priority = 1;
-	switch(value){
-		//case Type(empty):
-		//	priority = 1;
-		//	break;
-		case Type(sand):
-			priority = 5;
-			break;
-		case Type(woods):
-			priority = 6;
-			break;
-		case Type(water):
-			priority = 7;
-			break;
-		case Type(mountains):
-			priority = 9;
-			break;
-	}
-	return priority;
-}
-
 void 
 Dijkstra(Matrix& matrix){
 	// State of the found path
@@ -189,6 +202,7 @@ Dijkstra(Matrix& matrix){
 
 		if(matrix[current.y][current.x] == Type(end)){
 			path_found = true;
+			cost_path = cost_so_far[current];
 			break;
 		}
 		// Get a <point> vector of current location neighbors
@@ -200,7 +214,7 @@ Dijkstra(Matrix& matrix){
 			bool diagonal = (current.y != near[i].y && current.x != near[i].x);
 			//find the cost for the next tile(cell)
 			double new_cost = cost_so_far[current] + 
-					(get_cell_priority(matrix[near[i].y][near[i].x])) + (diagonal?0.5:0);
+					(get_cell_priority(matrix[near[i].y][near[i].x]%10)) + (diagonal?0.5:0);
 
 			if (cost_so_far.find(near[i]) == cost_so_far.end() 
 					|| new_cost < cost_so_far[near[i]]) {
@@ -211,9 +225,10 @@ Dijkstra(Matrix& matrix){
 
 					}
 				}
+
 				cost_so_far[near[i]] = new_cost; 
 				came_from[near[i]] = current;
-				neigh.push(CElement{near[i], new_cost});
+				neigh.emplace(CElement{near[i], new_cost});
 
 				neigh_reverse.push_back(near[i]);
 
@@ -235,7 +250,7 @@ Dijkstra(Matrix& matrix){
 		while(current != start_point){
 			current = came_from[current];	
 			if(matrix[current.y][current.x] != Type(start)){
-				matrix[current.y][current.x] = matrix[current.y][current.x] - Type(visited) + Type(path);
+				matrix[current.y][current.x] += Type(path) - Type(visited);
 			}
 			distance_path++;
 			// Path delay
@@ -310,8 +325,10 @@ AStar(Matrix& matrix){
 
 		current = neigh.top().location;
 		neigh.pop();
+
 		if(matrix[current.y][current.x] == Type(end)){
 			path_found = true;
+			cost_path = cost_so_far[current];
 			break;
 		}
 
@@ -324,7 +341,7 @@ AStar(Matrix& matrix){
 			bool diagonal = (current.y != near[i].y && current.x != near[i].x);
 			//find the cost for the next tile(cell)
 			double new_cost = cost_so_far[current] + 
-					(get_cell_priority(matrix[near[i].y][near[i].x])) + (diagonal?0.5:0);
+					(get_cell_priority(matrix[near[i].y][near[i].x]%10)) + (diagonal?0.5:0);
 
 			if (cost_so_far.find(near[i]) == cost_so_far.end() 
 					|| new_cost < cost_so_far[near[i]]) {
@@ -337,7 +354,7 @@ AStar(Matrix& matrix){
 
 				cost_so_far[near[i]] = new_cost; 
 				double priority = new_cost + heuristic(near[i], end_point);
-				neigh.push(CElement{near[i], priority});
+				neigh.emplace(CElement{near[i], priority});
 				came_from[near[i]] = current;
 
 				neigh_reverse.push_back(near[i]);
