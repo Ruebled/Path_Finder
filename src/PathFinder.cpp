@@ -188,48 +188,73 @@ int main(int argc, const char* argv[]) {
 
   auto main_screen_renderer = Renderer(components, [&] {
     if (screen.dimx() != screen_x || screen.dimy() != screen_y) {
-      return hbox({grid_with_mouse->Render() | border});
+      return grid_with_mouse->Render() | border;
     }
 
-    return hbox(
-        {grid_with_mouse->Render() | border,
+    return hbox({
+        grid_with_mouse->Render() | border,
 
-         flex_grow(vbox({separatorEmpty(),
-                         hbox({text("Welcome to Path Finder")}) | center | bold,
-                         hbox({text("Coord: [Y] [X]: "), coord_temp}) | center,
-                         separatorEmpty(), separator(), filler(),
-                         vbox({text("Quick Introduction") | bold | center,
-                               separatorEmpty(),
-                               instructions_en | borderEmpty | center}),
-                         filler(), separator(),
-                         text("PathFinding Algorithms") | center | bold,
-                         separatorEmpty(),
+        flex_grow(vbox({
+                      separatorEmpty(),
+                      hbox({
+                          text("Welcome to Path Finder"),
+                      }) | center |
+                          bold,
+                      hbox({
+                          text("Coord: [Y] [X]: "),
+                          coord_temp,
+                      }) | center,
+                      separatorEmpty(),
+                      separator(),
+                      filler(),
+                      vbox({
+                          text("Quick Introduction") | bold | center,
+                          separatorEmpty(),
+                          instructions_en | borderEmpty | center,
+                      }),
+                      filler(),
+                      separator(),
+                      text("PathFinding Algorithms") | center | bold,
+                      separatorEmpty(),
 
-                         vbox({algo_select_menu->Render(), separatorEmpty(),
-                               diagonal_check->Render()}) |
-                             borderEmpty,
-                         separator(),
+                      vbox({
+                          algo_select_menu->Render(),
+                          separatorEmpty(),
+                          diagonal_check->Render(),
+                      }) | borderEmpty,
+                      separator(),
 
-                         vbox({
-                             text("Performance") | center,
-                             hbox({text("CPU time: "),
-                                   toShorterFloat(cpu_time, 5), text(" ms")}) |
-                                 center,
-                             hbox({text("Real time: "),
-                                   toShorterFloat(real_time, 5), text(" s")}) |
-                                 center,
-                             hbox({text("Distance: "),
-                                   text(std::to_string(distance_path))}) |
-                                 center,
-                             hbox({
-                                 text("Cost: "),
-                                 toShorterFloat(cost_path, 6),
-                             }) | center,
-                         }),
-                         separator(), hbox({buttons->Render()}) | center | focus
+                      vbox({
+                          text("Performance") | center,
+                          hbox({
+                              text("CPU time: "),
+                              toShorterFloat(cpu_time, 5),
+                              text(" ms"),
+                          }) | center,
+                          hbox({
+                              text("Real time: "),
+                              toShorterFloat(real_time, 5),
+                              text(" s"),
+                          }) | center,
+                          hbox({
+                              text("Distance: "),
+                              text(std::to_string(distance_path)),
+                          }) | center,
+                          hbox({
+                              text("Cost: "),
+                              toShorterFloat(cost_path, 6),
+                          }) | center,
+                      }),
+                      separator(),
+                      hbox({
+                          buttons->Render(),
+                      }) | center |
+                          focus
 
-                   }) |
-                   border)});
+                      ,
+                  }) |
+                  border),
+    });
   });
 
   // Tiles types selecting modal
@@ -303,7 +328,9 @@ int main(int argc, const char* argv[]) {
     return vbox({
                text("Select the tile"),
                separator(),
-               vbox(tiles_selector_container->Render()),
+               vbox({
+                   tiles_selector_container->Render(),
+               }),
            }) |
            border;
   });
