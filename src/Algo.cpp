@@ -1,5 +1,11 @@
 #include "Algo.h"
 
+#include <algorithm>
+#include <random>
+
+std::random_device random_source;
+std::mt19937 random_generator(random_source());
+
 // distance of the path
 int distance_path = 0;
 
@@ -439,7 +445,7 @@ get_neighbors(Matrix& mat, point t_point){
 		}
 	}
 
-	std::random_shuffle(neigh.begin(), neigh.end());
+	std::shuffle(neigh.begin(), neigh.end(), random_generator);
 
 	return neigh; 
 }
