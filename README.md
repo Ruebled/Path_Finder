@@ -3,6 +3,11 @@ A CPP Console application that uses ftxui, it search the path between two points
 
 Project using the [FTXUI library](https://github.com/ArthurSonzogni/ftxui)
 
+![image](https://github.com/Ruebled/Path_Finder/assets/4759106/77a136b8-38f9-4802-9b4f-8858bb7d1e5a)
+
+![image](https://github.com/Ruebled/Path_Finder/assets/4759106/9cb126c9-d2a8-4529-b1ba-621d1aba7666)
+
+
 # Dependencies
 git
 cmake
