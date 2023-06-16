@@ -580,7 +580,12 @@ int main(int argc, const char* argv[]) {
     }
 
     // On escape close all aditional windows
-    if (depth && e == Event::Special("\x1B")) {
+    // if (depth && e == Event::Special("\x1B")) {
+    //  depth = 0;
+    //  return false;
+    //}
+
+    if (depth && e == Event::Special({27, 27, 27})) {
       depth = 0;
       return false;
     }
