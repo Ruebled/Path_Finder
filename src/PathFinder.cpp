@@ -6,7 +6,6 @@ extern float cpu_time;
 
 // Real time benchmark
 extern float real_time;
-
 // Distance of the found path
 extern int distance_path;
 
@@ -585,7 +584,7 @@ int main(int argc, const char* argv[]) {
     //  return false;
     //}
 
-    if (depth && e == Event::Special({27, 27, 27})) {
+    if (depth && e == Event::Special({27})) {
       depth = 0;
       return false;
     }

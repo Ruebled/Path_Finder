@@ -1,6 +1,7 @@
 # Build directory
-ses.vim
+*.vim
 build/
+doc/
 tags
 
 # Prerequisites
