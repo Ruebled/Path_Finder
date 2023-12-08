@@ -1,5 +1,7 @@
 # Path_Finder
 A CPP Console application that uses ftxui, it search the path between two points using diferent algoritms and show it in real time.
+## Note
+I know it's full of issues and not following any coding guidelines, but ideas for improvement are appreciated.
 
 Project using the [FTXUI library](https://github.com/ArthurSonzogni/ftxui)
 
