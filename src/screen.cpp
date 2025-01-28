@@ -24,24 +24,24 @@ ftxui::Canvas matrix_to_canvas(Grid grid, ftxui::Screen& screen) {
   int cell_dim_x = grid.cell_width();
   int cell_dim_y = grid.cell_height();
 
-  //auto canvas = ftxui::Canvas(cols * cell_dim_x + 2, rows * (cell_dim_y + 1));
-  //if (screen.dimx() < 194) {
-  //  std::string v_text = "Too little horizontal space";
-  //  canvas.DrawText(0, 0, v_text);
-  //  return canvas;
-  //} else if (screen.dimy() < 45) {
-  //  std::string h_text = "Too little vertical space";
-  //  canvas.DrawText(0, 0, h_text);
-  //  return canvas;
-  //} else if (screen.dimx() > 194) {
-  //  std::string h_text = "Too much horizontal space";
-  //  canvas.DrawText(0, 0, h_text);
-  //  return canvas;
-  //} else if (screen.dimy() > 45) {
-  //  std::string h_text = "Too much vertical space";
-  //  canvas.DrawText(0, 0, h_text);
-  //  return canvas;
-  //}
+  auto canvas = ftxui::Canvas(cols * cell_dim_x + 2, rows * (cell_dim_y + 1));
+  // if (screen.dimx() < 194) {
+  //   std::string v_text = "Too little horizontal space";
+  //   canvas.DrawText(0, 0, v_text);
+  //   return canvas;
+  // } else if (screen.dimy() < 45) {
+  //   std::string h_text = "Too little vertical space";
+  //   canvas.DrawText(0, 0, h_text);
+  //   return canvas;
+  // } else if (screen.dimx() > 194) {
+  //   std::string h_text = "Too much horizontal space";
+  //   canvas.DrawText(0, 0, h_text);
+  //   return canvas;
+  // } else if (screen.dimy() > 45) {
+  //   std::string h_text = "Too much vertical space";
+  //   canvas.DrawText(0, 0, h_text);
+  //   return canvas;
+  // }
 
   // Draw the Main axis from point 0, 0
   canvas.DrawPointLine(0, 0, cols * cell_dim_x, 0, ftxui::Color::White);

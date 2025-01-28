@@ -196,9 +196,9 @@ int main(int argc, const char* argv[]) {
   });
 
   auto main_screen_renderer = Renderer(components, [&] {
-    if (screen.dimx() != screen_x || screen.dimy() != screen_y) {
-      return grid_with_mouse->Render() | border;
-    }
+    // if (screen.dimx() != screen_x || screen.dimy() != screen_y) {
+    //   return grid_with_mouse->Render() | border;
+    // }
 
     return hbox({
         grid_with_mouse->Render() | border,
@@ -524,9 +524,9 @@ int main(int argc, const char* argv[]) {
   auto main_renderer = Renderer(main_container, [&] {
     Element document = main_screen_renderer->Render();
 
-    if (screen.dimx() != screen_x || screen.dimy() != screen_y) {
-      return document;
-    }
+    // if (screen.dimx() != screen_x || screen.dimy() != screen_y) {
+    //   return document;
+    // }
 
     if (depth == 1) {
       document = dbox({
